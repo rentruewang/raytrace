@@ -1,4 +1,5 @@
 use crate::vector::Vector;
+
 use rand::{rngs::ThreadRng, Rng};
 
 #[derive(Clone, Copy, Debug)]
@@ -29,7 +30,7 @@ impl Material {
         match self {
             Material::Matte { .. } => {
                 // Mathematical Lambertian
-                Vector::random(1.0, trng) + normal
+                Vector::random_ball(1_f64, trng) + normal
             }
             // In reality, Rust translates
             // Material::Metal { blur, .. }
@@ -45,20 +46,20 @@ impl Material {
             } => {
                 let input = input.unit();
                 let cosine = input.dot(&normal);
-                let ratio = if cosine < 0.0 {
-                    1.0 / (*refractive)
+                let ratio = if cosine < 0_f64 {
+                    1_f64 / (*refractive)
                 } else {
                     *refractive
                 };
-                let sine_squared = 1.0 - cosine * cosine;
-                let cosine_squared = 1.0 - ratio * ratio * sine_squared;
-                let refract = cosine <= 0.0 || cosine_squared >= 0.0;
+                let sine_squared = 1_f64 - cosine * cosine;
+                let cosine_squared = 1_f64 - ratio * ratio * sine_squared;
+                let refract = cosine <= 0_f64 || cosine_squared >= 0_f64;
 
                 let random: f64 = trng.gen();
                 // shilick approximates the *REFLECT* probability
                 // hence here we take the refract probablility which is (1 - schilick)
                 if refract && random > Material::schilick(num::abs(cosine), *refractive) {
-                    let rand_blur = Vector::random(*blur, trng);
+                    let rand_blur = Vector::random_ball(*blur, trng);
                     (input + normal * cosine) * ratio - normal * cosine_squared.sqrt() + rand_blur
                 } else {
                     Material::mirror(input, normal, *blur, trng)
@@ -68,13 +69,13 @@ impl Material {
     }
 
     fn mirror(input: Vector, normal: Vector, blur: f64, trng: &mut ThreadRng) -> Vector {
-        let random = Vector::random(blur, trng);
-        let casted = normal * (input.dot(&normal) * 2.0);
+        let random = Vector::random_ball(blur, trng);
+        let casted = normal * (input.dot(&normal) * 2_f64);
         random + input - casted
     }
     fn schilick(cosine: f64, ratio: f64) -> f64 {
-        let r = (1.0 - ratio) / (1.0 + ratio);
+        let r = (1_f64 - ratio) / (1_f64 + ratio);
         let sq = r * r;
-        sq + (1.0 - sq) * num::pow(1.0 - cosine, 5)
+        sq + (1_f64 - sq) * num::pow(1_f64 - cosine, 5)
     }
 }

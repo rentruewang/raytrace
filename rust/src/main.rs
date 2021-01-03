@@ -2,29 +2,32 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 use image::{self, imageops, ImageBuffer};
+use indicatif::ProgressBar;
 use rayon::prelude::*;
 
 mod config;
 
 fn main() -> Result<()> {
-    use config::{NX, NY};
+    use config::{DEP, NS, NX, NY};
 
     let mut img = ImageBuffer::new(NX as u32, config::NY as u32);
 
     let scn = config::create();
 
     const TOTAL: usize = NX * NY;
+
+    let progbar = ProgressBar::new(TOTAL as u64);
+
     let img_pixels: Vec<[u8; 3]> = (0..TOTAL)
         .into_par_iter()
         .map(|i: usize| -> [u8; 3] {
             let trng = &mut rand::thread_rng();
             let position = (i / NY, i % NY);
-            scn.color(
-                position,
-                (config::NX as usize, config::NY as usize, config::NS),
-                config::DEP,
-                trng,
-            )
+            scn.color(position, (NX as usize, NY as usize, NS), DEP, trng)
+        })
+        .map(|x| {
+            progbar.inc(1);
+            x
         })
         .collect();
 
@@ -39,10 +42,10 @@ fn main() -> Result<()> {
     let folder = "images";
     let fname = "image.png";
 
-    fs::create_dir(folder)?;
+    fs::create_dir_all(folder).unwrap();
     let full_path = Path::new(folder).join(fname);
 
-    img.save(full_path)?;
+    img.save(full_path).unwrap();
 
     Ok(())
 }

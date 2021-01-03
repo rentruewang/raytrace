@@ -1,21 +1,44 @@
 use raytrace_rs::{Material, Scene, Sphere, Vector};
-use std::f64::consts;
 
-pub const NX: usize = 800;
-pub const NY: usize = 400;
+use rand::{self, Rng};
+
+pub const NX: usize = 1200;
+pub const NY: usize = 675;
+
 pub const NS: usize = 100;
 pub const DEP: usize = 50;
-pub const DEG: f64 = 90.0;
+
+pub const DEG: f64 = 30_f64;
+pub const APERTURE: f64 = 0_f64;
+
 pub const RATIO: f64 = NX as f64 / NY as f64;
-pub const APERTURE: f64 = 0.01;
+
+fn material(material_code: f64, albedo: Vector, blur: f64, refractive: f64) -> Material {
+    let mat = (material_code * 3_f64) as usize;
+    let albedo = albedo / 2_f64 + 0.5;
+    let blur = blur / 2_f64;
+    let refractive = refractive + 1_f64;
+    match mat {
+        0 => Material::Matte { albedo },
+        1 => Material::Metal { albedo, blur },
+        2 => Material::Glass {
+            albedo,
+            blur,
+            refractive,
+        },
+        _ => unreachable!(),
+    }
+}
 
 pub fn create<'a>() -> Scene<'a> {
-    let eye = Vector::new(0.0, 0.0, -0.3);
-    let lookat = Vector::new(0.0, 0.0, -1.0);
-    let viewup = Vector::new(0.0, 1.0, 0.0);
+    use std::f64::consts::PI;
+
+    let eye = Vector::new(13_f64, 2_f64, 3_f64);
+    let lookat = Vector::new(0_f64, 0_f64, 0_f64);
+    let viewup = Vector::new(0_f64, 1_f64, 0_f64);
 
     let vision = lookat - eye;
-    let rad = (DEG / 2.0) / 180.0 * consts::PI;
+    let rad = PI * DEG / 360_f64;
     let height = rad.tan() * vision.length();
     let width = height * RATIO;
 
@@ -30,42 +53,66 @@ pub fn create<'a>() -> Scene<'a> {
     let mut scn = Scene::new(
         eye,
         lookat - viewup - horizon,
-        horizon * 2.0,
-        viewup * 2.0,
+        horizon * 2_f64,
+        viewup * 2_f64,
         APERTURE,
     );
 
+    let trng = &mut rand::thread_rng();
+
+    for i in -11..=11 {
+        for j in -11..=11 {
+            let i = i as f64;
+            let j = j as f64;
+
+            let center = Vector::new(
+                i + 0.9 * trng.gen::<f64>(),
+                0.2,
+                j + 0.9 * trng.gen::<f64>(),
+            );
+
+            scn.register(Sphere::new(
+                center,
+                0.2,
+                material(trng.gen(), Vector::random(trng), trng.gen(), trng.gen()),
+            ));
+        }
+    }
+
     scn.register(Sphere::new(
-        Vector::new(0.0, 0.0, -1.0),
-        0.5,
-        Material::Glass {
-            albedo: Vector::new(1.0, 1.0, 1.0),
-            blur: 0.0,
-            refractive: 1.5,
-        },
-    ));
-    scn.register(Sphere::new(
-        Vector::new(0.0, -100.5, -1.0),
-        100.0,
+        Vector::new(0_f64, -1000_f64, 0_f64),
+        1000_f64,
         Material::Matte {
-            albedo: Vector::new(0.9, 0.9, 0.0),
-        },
-    ));
-    scn.register(Sphere::new(
-        Vector::new(-1.0, 0.0, -1.0),
-        0.5,
-        Material::Matte {
-            albedo: Vector::new(0.8, 0.3, 0.3),
-        },
-    ));
-    scn.register(Sphere::new(
-        Vector::new(1.0, 0.0, -1.0),
-        0.5,
-        Material::Metal {
-            albedo: Vector::new(0.95, 0.95, 0.95),
-            blur: 0.1,
+            albedo: Vector::new(0.9, 0.9, 0_f64),
         },
     ));
 
-    scn
+    scn.register(Sphere::new(
+        Vector::j(),
+        1_f64,
+        Material::Glass {
+            albedo: Vector::uniform(1_f64),
+            blur: 0_f64,
+            refractive: 1.5,
+        },
+    ));
+
+    scn.register(Sphere::new(
+        Vector::new(-4_f64, 1_f64, 0_f64),
+        1_f64,
+        Material::Matte {
+            albedo: Vector::new(0.4, 0.2, 0.1),
+        },
+    ));
+
+    scn.register(Sphere::new(
+        Vector::new(4_f64, 1_f64, 0_f64),
+        1_f64,
+        Material::Metal {
+            albedo: Vector::new(0.7, 0.6, 0.5),
+            blur: 0_f64,
+        },
+    ));
+
+    scn.build()
 }

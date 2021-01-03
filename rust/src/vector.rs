@@ -1,5 +1,6 @@
-use rand::{rngs::ThreadRng, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
+use rand::Rng;
 
 /// `Vector` struct is `Copy` to avoid ownership issues
 /// functions are inlined to avoid copy overhead
@@ -78,14 +79,44 @@ impl Vector {
             z: self.x * other.y - self.y * other.x,
         }
     }
-    pub fn random(radius: f64, trng: &mut ThreadRng) -> Self {
-        const ONE: f64 = 1.0;
+
+    pub fn i() -> Self {
+        Self {
+            x: 1_f64,
+            y: 0_f64,
+            z: 0_f64,
+        }
+    }
+
+    pub fn j() -> Self {
+        Self {
+            x: 0_f64,
+            y: 1_f64,
+            z: 0_f64,
+        }
+    }
+
+    pub fn k() -> Self {
+        Self {
+            x: 0_f64,
+            y: 0_f64,
+            z: 1_f64,
+        }
+    }
+
+    pub fn uniform(n: f64) -> Self {
+        Self { x: n, y: n, z: n }
+    }
+
+    pub fn random(trng: &mut impl Rng) -> Self {
+        let (x, y, z) = trng.gen();
+        Self { x, y, z }
+    }
+
+    pub fn random_ball(radius: f64, trng: &mut impl Rng) -> Self {
+        const ONE: f64 = 1_f64;
         loop {
-            let rand_vec = Self {
-                x: trng.gen(),
-                y: trng.gen(),
-                z: trng.gen(),
-            };
+            let rand_vec = Self::random(trng);
             if rand_vec.l2() <= ONE {
                 return rand_vec * radius;
             }
