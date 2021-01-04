@@ -1,32 +1,30 @@
-use crate::{container::BoundingBox, material::Material, vector::Vector};
-
-use num::Num;
+use crate::{BoundingBox, Material, Vector};
 
 #[derive(Clone, Copy, Debug)]
 pub enum HitData {
     Hit {
         t: f64,
-        point: Vector,
-        normal: Vector,
+        point: Vector<f64>,
+        normal: Vector<f64>,
         matter: Material,
     },
     Miss,
 }
 
 pub trait Hittable: Send + Sync {
-    fn hit(&self, source: Vector, target: Vector) -> HitData;
-    fn bounds(&self) -> BoundingBox;
+    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData;
+    fn bounds(&self) -> BoundingBox<f64>;
 }
 
 #[derive(Debug)]
 pub struct Sphere {
-    center: Vector,
+    center: Vector<f64>,
     radius: f64,
     matter: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vector, radius: f64, matter: Material) -> Self {
+    pub fn new(center: Vector<f64>, radius: f64, matter: Material) -> Self {
         Self {
             center,
             radius,
@@ -34,7 +32,7 @@ impl Sphere {
         }
     }
 
-    pub fn center(&self) -> Vector {
+    pub fn center(&self) -> Vector<f64> {
         self.center
     }
 
@@ -46,20 +44,13 @@ impl Sphere {
         self.matter
     }
 
-    pub fn normal(&self, point: &Vector) -> Vector {
+    pub fn normal(&self, point: &Vector<f64>) -> Vector<f64> {
         *point - self.center
-    }
-
-    fn square<T>(n: T) -> T
-    where
-        T: Copy + Num,
-    {
-        n * n
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, source: Vector, target: Vector) -> HitData {
+    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
         let radius = self.radius;
 
         let oc = self.normal(&source);
@@ -67,7 +58,7 @@ impl Hittable for Sphere {
         let b = oc.dot(&target);
         let c = oc.l2() - radius * radius;
 
-        let base = (Self::square(b) - a * c).sqrt();
+        let base = (b.powi(2) - a * c).sqrt();
         let neg = (-b - base) / a;
         let pos = (-b + base) / a;
 
@@ -94,7 +85,7 @@ impl Hittable for Sphere {
         }
     }
 
-    fn bounds(&self) -> BoundingBox {
+    fn bounds(&self) -> BoundingBox<f64> {
         let center = self.center;
         let (x, y, z) = (center.x(), center.y(), center.z());
         let r = self.radius;

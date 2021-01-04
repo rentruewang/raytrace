@@ -1,28 +1,25 @@
-use crate::{
-    container::{BoundingBox, NaiveList},
-    object::{HitData, Hittable},
-    vector::Vector,
-};
+use crate::{BoundingBox, HitData, Hittable, List, Tree, Vector};
 
 use std::f64;
 
 use rand::{rngs::ThreadRng, Rng};
 
 pub struct Scene<'a> {
-    source: Vector,
-    corner: Vector,
-    horizon: Vector,
-    vertical: Vector,
-    list: NaiveList<'a>,
+    source: Vector<f64>,
+    corner: Vector<f64>,
+    horizon: Vector<f64>,
+    vertical: Vector<f64>,
     aperture: f64,
+
+    object: Option<Box<dyn Hittable + 'a>>,
 }
 
 impl<'a> Scene<'a> {
     pub fn new(
-        source: Vector,
-        corner: Vector,
-        horizon: Vector,
-        vertical: Vector,
+        source: Vector<f64>,
+        corner: Vector<f64>,
+        horizon: Vector<f64>,
+        vertical: Vector<f64>,
         aperture: f64,
     ) -> Self {
         Self {
@@ -30,32 +27,32 @@ impl<'a> Scene<'a> {
             corner,
             horizon,
             vertical,
-            list: NaiveList::new(),
             aperture,
+            object: None,
         }
     }
 
-    pub fn source(&self) -> Vector {
+    pub fn source(&self) -> Vector<f64> {
         self.source
     }
-    pub fn corner(&self) -> Vector {
+    pub fn corner(&self) -> Vector<f64> {
         self.corner
     }
-    pub fn horizon(&self) -> Vector {
+    pub fn horizon(&self) -> Vector<f64> {
         self.horizon
     }
-    pub fn vertical(&self) -> Vector {
+    pub fn vertical(&self) -> Vector<f64> {
         self.vertical
     }
 
     pub fn color_trace(
         &self,
-        (starting, towards): (Vector, Vector),
+        (starting, towards): (Vector<f64>, Vector<f64>),
         depth: usize,
         trng: &mut ThreadRng,
-    ) -> Vector {
+    ) -> Vector<f64> {
         let (mut starting, mut towards) = (starting, towards);
-        let mut color: Vector = Vector::new(1_f64, 1_f64, 1_f64);
+        let mut color = Vector::new(1_f64, 1_f64, 1_f64);
         for _ in 0..depth {
             if let HitData::Hit {
                 point,
@@ -86,8 +83,8 @@ impl<'a> Scene<'a> {
         trng: &mut ThreadRng,
     ) -> [u8; 3] {
         let (dx, dy) = Scene::random_disk(self.aperture, trng);
-        let h: Vector = self.horizon.unit() * dx;
-        let v: Vector = self.vertical.unit() * dy;
+        let h = self.horizon.unit() * dx;
+        let v = self.vertical.unit() * dy;
         let start = self.source + h + v;
 
         let mut color = Vector::new(0_f64, 0_f64, 0_f64);
@@ -104,16 +101,6 @@ impl<'a> Scene<'a> {
         [array[0] as u8, array[1] as u8, array[2] as u8]
     }
 
-    pub fn register(&mut self, obj: impl Hittable + 'a) {
-        self.list.register(obj);
-    }
-
-    /// Build should be called before all hit operations
-    pub fn build(mut self) -> Self {
-        self.list = self.list.build();
-        self
-    }
-
     pub fn random_disk(radius: f64, trng: &mut ThreadRng) -> (f64, f64) {
         let (mut x, mut y): (f64, f64);
         loop {
@@ -124,14 +111,18 @@ impl<'a> Scene<'a> {
             }
         }
     }
+
+    pub fn save(&mut self, object: Box<dyn Hittable + 'a>) {
+        self.object = Some(object);
+    }
 }
 
 impl<'a> Hittable for Scene<'a> {
-    fn hit(&self, source: Vector, target: Vector) -> HitData {
-        self.list.hit(source, target)
+    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
+        self.object.as_ref().unwrap().hit(source, target)
     }
 
-    fn bounds(&self) -> BoundingBox {
-        self.list.bounds()
+    fn bounds(&self) -> BoundingBox<f64> {
+        self.object.as_ref().unwrap().bounds()
     }
 }

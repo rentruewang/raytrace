@@ -1,32 +1,37 @@
-use crate::vector::Vector;
+use crate::Vector;
 
 use rand::{rngs::ThreadRng, Rng};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Material {
     Matte {
-        albedo: Vector,
+        albedo: Vector<f64>,
     },
     Metal {
-        albedo: Vector,
+        albedo: Vector<f64>,
         blur: f64,
     },
     Glass {
-        albedo: Vector,
+        albedo: Vector<f64>,
         blur: f64,
         refractive: f64,
     },
 }
 
 impl Material {
-    pub fn albedo(&self) -> Vector {
+    pub fn albedo(&self) -> Vector<f64> {
         match self {
             Material::Matte { albedo }
             | Material::Metal { albedo, .. }
             | Material::Glass { albedo, .. } => *albedo,
         }
     }
-    pub fn scatter(&self, input: Vector, normal: Vector, trng: &mut ThreadRng) -> Vector {
+    pub fn scatter(
+        &self,
+        input: Vector<f64>,
+        normal: Vector<f64>,
+        trng: &mut ThreadRng,
+    ) -> Vector<f64> {
         match self {
             Material::Matte { .. } => {
                 // Mathematical Lambertian
@@ -68,7 +73,12 @@ impl Material {
         }
     }
 
-    fn mirror(input: Vector, normal: Vector, blur: f64, trng: &mut ThreadRng) -> Vector {
+    fn mirror(
+        input: Vector<f64>,
+        normal: Vector<f64>,
+        blur: f64,
+        trng: &mut ThreadRng,
+    ) -> Vector<f64> {
         let random = Vector::random_ball(blur, trng);
         let casted = normal * (input.dot(&normal) * 2_f64);
         random + input - casted

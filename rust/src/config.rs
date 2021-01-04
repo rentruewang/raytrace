@@ -1,9 +1,12 @@
-use raytrace_rs::{Material, Scene, Sphere, Vector};
+use raytrace_rs::{Hittable, List, Material, Scene, Sphere, Tree, Vector};
 
 use rand::{self, Rng};
 
-pub const NX: usize = 1200;
-pub const NY: usize = 675;
+// pub const NX: usize = 1200;
+// pub const NY: usize = 675;
+
+pub const NX: usize = 400;
+pub const NY: usize = 225;
 
 pub const NS: usize = 100;
 pub const DEP: usize = 50;
@@ -11,9 +14,10 @@ pub const DEP: usize = 50;
 pub const DEG: f64 = 30_f64;
 pub const APERTURE: f64 = 0_f64;
 
+pub const TREE: bool = true;
 pub const RATIO: f64 = NX as f64 / NY as f64;
 
-fn material(material_code: f64, albedo: Vector, blur: f64, refractive: f64) -> Material {
+fn material(material_code: f64, albedo: Vector<f64>, blur: f64, refractive: f64) -> Material {
     let mat = (material_code * 3_f64) as usize;
     let albedo = albedo / 2_f64 + 0.5;
     let blur = blur / 2_f64;
@@ -50,13 +54,7 @@ pub fn create<'a>() -> Scene<'a> {
     viewup *= height;
     horizon *= width;
 
-    let mut scn = Scene::new(
-        eye,
-        lookat - viewup - horizon,
-        horizon * 2_f64,
-        viewup * 2_f64,
-        APERTURE,
-    );
+    let mut list = List::new();
 
     let trng = &mut rand::thread_rng();
 
@@ -71,7 +69,7 @@ pub fn create<'a>() -> Scene<'a> {
                 j + 0.9 * trng.gen::<f64>(),
             );
 
-            scn.register(Sphere::new(
+            list.register(Sphere::new(
                 center,
                 0.2,
                 material(trng.gen(), Vector::random(trng), trng.gen(), trng.gen()),
@@ -79,7 +77,7 @@ pub fn create<'a>() -> Scene<'a> {
         }
     }
 
-    scn.register(Sphere::new(
+    list.register(Sphere::new(
         Vector::new(0_f64, -1000_f64, 0_f64),
         1000_f64,
         Material::Matte {
@@ -87,7 +85,7 @@ pub fn create<'a>() -> Scene<'a> {
         },
     ));
 
-    scn.register(Sphere::new(
+    list.register(Sphere::new(
         Vector::j(),
         1_f64,
         Material::Glass {
@@ -97,7 +95,7 @@ pub fn create<'a>() -> Scene<'a> {
         },
     ));
 
-    scn.register(Sphere::new(
+    list.register(Sphere::new(
         Vector::new(-4_f64, 1_f64, 0_f64),
         1_f64,
         Material::Matte {
@@ -105,7 +103,7 @@ pub fn create<'a>() -> Scene<'a> {
         },
     ));
 
-    scn.register(Sphere::new(
+    list.register(Sphere::new(
         Vector::new(4_f64, 1_f64, 0_f64),
         1_f64,
         Material::Metal {
@@ -114,5 +112,21 @@ pub fn create<'a>() -> Scene<'a> {
         },
     ));
 
-    scn.build()
+    let mut scn = Scene::new(
+        eye,
+        lookat - viewup - horizon,
+        horizon * 2_f64,
+        viewup * 2_f64,
+        APERTURE,
+    );
+
+    let list: Box<dyn Hittable> = if TREE {
+        Box::new(Tree::build(list))
+    } else {
+        Box::new(list)
+    };
+
+    scn.save(list);
+
+    scn
 }

@@ -1,13 +1,12 @@
 use std::{fs, path::Path};
 
-use anyhow::Result;
 use image::{self, imageops, ImageBuffer};
 use indicatif::ProgressBar;
 use rayon::prelude::*;
 
 mod config;
 
-fn main() -> Result<()> {
+fn main() {
     use config::{DEP, NS, NX, NY};
 
     let mut img = ImageBuffer::new(NX as u32, config::NY as u32);
@@ -46,6 +45,4 @@ fn main() -> Result<()> {
     let full_path = Path::new(folder).join(fname);
 
     img.save(full_path).unwrap();
-
-    Ok(())
 }

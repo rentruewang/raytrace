@@ -1,57 +1,319 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use num::{self, Num, Signed};
 use rand::Rng;
+
+pub trait Arithmetic:
+    Clone + Copy + Add + AddAssign + Div + DivAssign + Mul + MulAssign + Sub + SubAssign
+{
+}
 
 /// `Vector` struct is `Copy` to avoid ownership issues
 /// functions are inlined to avoid copy overhead
-#[derive(Clone, Copy, Debug)]
-pub struct Vector {
-    x: f64,
-    y: f64,
-    z: f64,
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    x: T,
+    y: T,
+    z: T,
 }
 
-impl Vector {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+impl<T> Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    pub fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
     }
 
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> T {
         self.x
     }
 
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> T {
         self.y
     }
 
-    pub fn z(&self) -> f64 {
+    pub fn z(&self) -> T {
         self.z
     }
 
-    pub fn x_mut(&mut self) -> &mut f64 {
+    pub fn x_mut(&mut self) -> &mut T {
         &mut self.x
     }
 
-    pub fn y_mut(&mut self) -> &mut f64 {
+    pub fn y_mut(&mut self) -> &mut T {
         &mut self.y
     }
 
-    pub fn z_mut(&mut self) -> &mut f64 {
+    pub fn z_mut(&mut self) -> &mut T {
         &mut self.z
     }
 
-    pub fn array(&self) -> [f64; 3] {
+    pub fn array(&self) -> [T; 3] {
         [self.x, self.y, self.z]
     }
 
-    pub fn dot(&self, other: &Self) -> f64 {
+    pub fn dot(&self, other: &Self) -> T {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn l2(&self) -> f64 {
+    pub fn l2(&self) -> T {
         self.dot(self)
     }
 
+    pub fn cross(&self, other: &Self) -> Self {
+        Self {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+        }
+    }
+
+    pub fn uniform(n: T) -> Self {
+        Self { x: n, y: n, z: n }
+    }
+}
+
+impl<T> Vector<T>
+where
+    T: Arithmetic + Num + Signed,
+{
+    pub fn abs(&self) -> Self {
+        Self {
+            x: num::abs(self.x),
+            y: num::abs(self.y),
+            z: num::abs(self.z),
+        }
+    }
+}
+
+impl<T> Add for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl<T> Sub for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
+    }
+}
+
+impl<T> Mul for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+}
+
+impl<T> Div for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self {
+        Self {
+            x: self.x / other.x,
+            y: self.y / other.y,
+            z: self.z / other.z,
+        }
+    }
+}
+
+impl<T> AddAssign for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn add_assign(&mut self, other: Self) {
+        self.x += other.x;
+        self.y += other.y;
+        self.z += other.z;
+    }
+}
+
+impl<T> SubAssign for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn sub_assign(&mut self, other: Self) {
+        self.x -= other.x;
+        self.y -= other.y;
+        self.z -= other.z;
+    }
+}
+
+impl<T> MulAssign for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn mul_assign(&mut self, other: Self) {
+        self.x *= other.x;
+        self.y *= other.y;
+        self.z *= other.z;
+    }
+}
+
+impl<T> DivAssign for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn div_assign(&mut self, other: Self) {
+        self.x /= other.x;
+        self.y /= other.y;
+        self.z /= other.z;
+    }
+}
+
+impl<T> Add<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn add(self, other: T) -> Self {
+        Self {
+            x: self.x + other,
+            y: self.y + other,
+            z: self.z + other,
+        }
+    }
+}
+
+impl<T> Sub<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn sub(self, other: T) -> Self {
+        Self {
+            x: self.x - other,
+            y: self.y - other,
+            z: self.z - other,
+        }
+    }
+}
+
+impl<T> Mul<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn mul(self, other: T) -> Self {
+        Self {
+            x: self.x * other,
+            y: self.y * other,
+            z: self.z * other,
+        }
+    }
+}
+
+impl<T> Div<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = Self;
+
+    fn div(self, other: T) -> Self {
+        Self {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
+        }
+    }
+}
+
+impl<T> AddAssign<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn add_assign(&mut self, other: T) {
+        self.x += other;
+        self.y += other;
+        self.z += other;
+    }
+}
+
+impl<T> SubAssign<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn sub_assign(&mut self, other: T) {
+        self.x -= other;
+        self.y -= other;
+        self.z -= other;
+    }
+}
+
+impl<T> MulAssign<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn mul_assign(&mut self, other: T) {
+        self.x *= other;
+        self.y *= other;
+        self.z *= other;
+    }
+}
+
+impl<T> DivAssign<T> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    fn div_assign(&mut self, other: T) {
+        self.x /= other;
+        self.y /= other;
+        self.z /= other;
+    }
+}
+
+impl<T> Neg for Vector<T>
+where
+    T: Arithmetic + Neg<Output = T> + Num,
+{
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Vector {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
+impl Vector<f64> {
     pub fn length(&self) -> f64 {
         self.l2().sqrt()
     }
@@ -70,14 +332,6 @@ impl Vector {
 
     pub fn is_nan(&self) -> bool {
         self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
-    }
-
-    pub fn cross(&self, other: &Self) -> Self {
-        Self {
-            x: self.y * other.z - self.z * other.y,
-            y: self.z * other.x - self.x * other.z,
-            z: self.x * other.y - self.y * other.x,
-        }
     }
 
     pub fn i() -> Self {
@@ -104,10 +358,6 @@ impl Vector {
         }
     }
 
-    pub fn uniform(n: f64) -> Self {
-        Self { x: n, y: n, z: n }
-    }
-
     pub fn random(trng: &mut impl Rng) -> Self {
         let (x, y, z) = trng.gen();
         Self { x, y, z }
@@ -124,174 +374,19 @@ impl Vector {
     }
 }
 
-impl Add for Vector {
-    type Output = Self;
+impl<T> Arithmetic for Vector<T> where T: Arithmetic + Num {}
 
-    fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
+impl Arithmetic for isize {}
+impl Arithmetic for i16 {}
+impl Arithmetic for i32 {}
+impl Arithmetic for i64 {}
+impl Arithmetic for i128 {}
 
-impl Sub for Vector {
-    type Output = Self;
+impl Arithmetic for usize {}
+impl Arithmetic for u16 {}
+impl Arithmetic for u32 {}
+impl Arithmetic for u64 {}
+impl Arithmetic for u128 {}
 
-    fn sub(self, other: Self) -> Self {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
-    }
-}
-
-impl Mul for Vector {
-    type Output = Self;
-
-    fn mul(self, other: Self) -> Self {
-        Self {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
-    }
-}
-
-impl Div for Vector {
-    type Output = Self;
-
-    fn div(self, other: Self) -> Self {
-        Self {
-            x: self.x / other.x,
-            y: self.y / other.y,
-            z: self.z / other.z,
-        }
-    }
-}
-
-impl AddAssign for Vector {
-    fn add_assign(&mut self, other: Self) {
-        self.x += other.x;
-        self.y += other.y;
-        self.z += other.z;
-    }
-}
-
-impl SubAssign for Vector {
-    fn sub_assign(&mut self, other: Self) {
-        self.x -= other.x;
-        self.y -= other.y;
-        self.z -= other.z;
-    }
-}
-
-impl MulAssign for Vector {
-    fn mul_assign(&mut self, other: Self) {
-        self.x *= other.x;
-        self.y *= other.y;
-        self.z *= other.z;
-    }
-}
-
-impl DivAssign for Vector {
-    fn div_assign(&mut self, other: Self) {
-        self.x /= other.x;
-        self.y /= other.y;
-        self.z /= other.z;
-    }
-}
-
-impl Add<f64> for Vector {
-    type Output = Self;
-
-    fn add(self, other: f64) -> Self {
-        Self {
-            x: self.x + other,
-            y: self.y + other,
-            z: self.z + other,
-        }
-    }
-}
-
-impl Sub<f64> for Vector {
-    type Output = Self;
-
-    fn sub(self, other: f64) -> Self {
-        Self {
-            x: self.x - other,
-            y: self.y - other,
-            z: self.z - other,
-        }
-    }
-}
-
-impl Mul<f64> for Vector {
-    type Output = Self;
-
-    fn mul(self, other: f64) -> Self {
-        Self {
-            x: self.x * other,
-            y: self.y * other,
-            z: self.z * other,
-        }
-    }
-}
-
-impl Div<f64> for Vector {
-    type Output = Self;
-
-    fn div(self, other: f64) -> Self {
-        Self {
-            x: self.x / other,
-            y: self.y / other,
-            z: self.z / other,
-        }
-    }
-}
-
-impl AddAssign<f64> for Vector {
-    fn add_assign(&mut self, other: f64) {
-        self.x += other;
-        self.y += other;
-        self.z += other;
-    }
-}
-
-impl SubAssign<f64> for Vector {
-    fn sub_assign(&mut self, other: f64) {
-        self.x -= other;
-        self.y -= other;
-        self.z -= other;
-    }
-}
-
-impl MulAssign<f64> for Vector {
-    fn mul_assign(&mut self, other: f64) {
-        self.x *= other;
-        self.y *= other;
-        self.z *= other;
-    }
-}
-
-impl DivAssign<f64> for Vector {
-    fn div_assign(&mut self, other: f64) {
-        self.x /= other;
-        self.y /= other;
-        self.z /= other;
-    }
-}
-
-impl Neg for Vector {
-    type Output = Self;
-
-    fn neg(self) -> Self {
-        Vector {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
-    }
-}
+impl Arithmetic for f32 {}
+impl Arithmetic for f64 {}
