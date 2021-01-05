@@ -1,4 +1,4 @@
-use crate::{HitData, Hittable, Vector};
+use crate::{Arithmetic, HitData, Hittable, Vector};
 
 use std::{cmp::PartialOrd, sync::Arc};
 
@@ -8,7 +8,7 @@ use num::{self, Num};
 // if a type containing a reference implements Hittable
 // then that reference has to live long enough,
 // so as not to invalidate the correctness of the program.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct List<'a> {
     objects: Vec<Box<dyn Hittable + 'a>>,
 }
@@ -24,10 +24,10 @@ impl<'a> List<'a> {
 }
 
 impl<'a> Hittable for List<'a> {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
         self.objects.iter().fold(HitData::Miss, |min_hit, obj| {
             let mut output = min_hit;
-            let data = obj.hit(source, target);
+            let data = obj.hit(source, towards);
             if let HitData::Hit { t, .. } = data {
                 match min_hit {
                     HitData::Hit { t: min_t, .. } if t < min_t => output = data,
@@ -44,12 +44,12 @@ impl<'a> Hittable for List<'a> {
         self.objects
             .iter()
             .map(|obj| obj.bounds())
-            .fold_first(|acc, val| BoundingBox::bounds(acc, val))
+            .fold_first(|acc, val| BoundingBox::wraps(acc, val))
             .unwrap()
     }
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct BoundingBox<T>
 where
     T: Copy + Num + Send + Sync,
@@ -61,14 +61,14 @@ where
 
 impl<T> BoundingBox<T>
 where
-    T: Copy + Num + PartialOrd + Send + Sync,
+    T: Arithmetic + Num + PartialOrd + Send + Sync,
 {
     fn ordered(arg: (T, T)) -> (T, T) {
         let (a, b) = arg;
-        if a > b {
-            (b, a)
-        } else {
+        if a < b {
             (a, b)
+        } else {
+            (b, a)
         }
     }
 
@@ -87,12 +87,26 @@ where
         )
     }
 
-    pub fn bounds(this: Self, other: Self) -> Self {
+    pub fn wraps(this: Self, other: Self) -> Self {
         Self {
             x: Self::larger_bound(this.x, other.x),
             y: Self::larger_bound(this.y, other.y),
             z: Self::larger_bound(this.z, other.z),
         }
+    }
+
+    pub fn min(&self) -> Vector<T> {
+        debug_assert!(self.x.0 <= self.x.1);
+        debug_assert!(self.y.0 <= self.y.1);
+        debug_assert!(self.z.0 <= self.z.1);
+        Vector::new(self.x.0, self.y.0, self.z.0)
+    }
+
+    pub fn max(&self) -> Vector<T> {
+        debug_assert!(self.x.1 >= self.x.0);
+        debug_assert!(self.y.1 >= self.y.0);
+        debug_assert!(self.z.1 >= self.z.0);
+        Vector::new(self.x.1, self.y.1, self.z.1)
     }
 }
 
@@ -103,6 +117,30 @@ impl BoundingBox<f64> {
             (self.y.0 + self.y.1) / 2_f64,
             (self.z.0 + self.z.1) / 2_f64,
         )
+    }
+
+    pub fn through(&self, source: Vector<f64>, towards: Vector<f64>) -> bool {
+        let (min, max) = (self.min(), self.max());
+
+        let (mut t_min, mut t_max) = (f64::MIN, f64::MAX);
+        for i in 0..3 {
+            let inv_b = 1_f64 / towards[i];
+            let t_small = (min[i] - source[i]) * inv_b;
+            let t_large = (max[i] - source[i]) * inv_b;
+
+            let (t_small, t_large) = if inv_b.is_sign_negative() {
+                (t_large, t_small)
+            } else {
+                (t_small, t_large)
+            };
+
+            debug_assert!(t_small <= t_large);
+
+            t_min = if t_small > t_min { t_small } else { t_min };
+            t_max = if t_large < t_max { t_large } else { t_max };
+        }
+
+        t_min < t_max
     }
 }
 
@@ -122,7 +160,6 @@ impl Axis {
         let center: Vector<f64> = list
             .iter()
             .map(|obj: &Arc<dyn Hittable>| obj.bounds().center())
-            .map(|x| x)
             .fold(Vector::default(), |acc, val| acc + val)
             / len;
 
@@ -143,6 +180,7 @@ impl Axis {
     }
 }
 
+#[derive(Debug)]
 pub struct TreeNode<'a> {
     bounds: BoundingBox<f64>,
 
@@ -153,7 +191,8 @@ pub struct TreeNode<'a> {
 impl<'a> TreeNode<'a> {
     pub fn new(left: Arc<dyn Hittable + 'a>, right: Arc<dyn Hittable + 'a>) -> Self {
         let (left_bound, right_bound) = (left.bounds(), right.bounds());
-        let bounds = BoundingBox::bounds(left_bound, right_bound);
+        let bounds = BoundingBox::wraps(left_bound, right_bound);
+
         Self {
             bounds,
             left,
@@ -163,10 +202,14 @@ impl<'a> TreeNode<'a> {
 }
 
 impl<'a> Hittable for TreeNode<'a> {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
+        if !self.bounds.through(source, towards) {
+            return HitData::Miss;
+        }
+
         match (
-            self.left.hit(source, target),
-            self.right.hit(source, target),
+            self.left.hit(source, towards),
+            self.right.hit(source, towards),
         ) {
             (HitData::Miss, HitData::Miss) => HitData::Miss,
             (hit @ HitData::Hit { .. }, HitData::Miss)
@@ -189,6 +232,7 @@ impl<'a> Hittable for TreeNode<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Tree<'a> {
     root: Arc<dyn Hittable + 'a>,
 }
@@ -205,8 +249,6 @@ impl<'a> Tree<'a> {
                 Arc::new(TreeNode::new(left, right))
             }
             n => {
-                let half = n / 2;
-
                 let compare = match Axis::maximum_variance(&list) {
                     Axis::X => |a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
                         a.bounds()
@@ -233,7 +275,7 @@ impl<'a> Tree<'a> {
 
                 list.sort_by(compare);
 
-                let (left, right) = list.split_at(half);
+                let (left, right) = list.split_at(n / 2);
 
                 let left_node = Self::recursive_partition(left.to_vec());
                 let right_node = Self::recursive_partition(right.to_vec());
@@ -254,8 +296,8 @@ impl<'a> Tree<'a> {
 }
 
 impl<'a> Hittable for Tree<'a> {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
-        self.root.hit(source, target)
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
+        self.root.hit(source, towards)
     }
     fn bounds(&self) -> BoundingBox<f64> {
         self.root.bounds()

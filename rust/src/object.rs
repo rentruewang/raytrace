@@ -1,18 +1,20 @@
 use crate::{BoundingBox, Material, Vector};
 
+use std::fmt::Debug;
+
 #[derive(Clone, Copy, Debug)]
 pub enum HitData {
+    Miss,
     Hit {
         t: f64,
         point: Vector<f64>,
         normal: Vector<f64>,
         matter: Material,
     },
-    Miss,
 }
 
-pub trait Hittable: Send + Sync {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData;
+pub trait Hittable: Debug + Send + Sync {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData;
     fn bounds(&self) -> BoundingBox<f64>;
 }
 
@@ -50,12 +52,12 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
         let radius = self.radius;
 
         let oc = self.normal(&source);
-        let a = target.l2();
-        let b = oc.dot(&target);
+        let a = towards.l2();
+        let b = oc.dot(&towards);
         let c = oc.l2() - radius * radius;
 
         let base = (b.powi(2) - a * c).sqrt();
@@ -63,8 +65,9 @@ impl Hittable for Sphere {
         let pos = (-b + base) / a;
 
         match (neg, pos) {
-            (neg, _) if neg > 0.0 => {
-                let point = source + target * neg;
+            (neg, _) if !neg.is_nan() && neg.is_sign_positive() => {
+                let point = source + towards * neg;
+                debug_assert!(self.bounds().through(source, towards));
                 HitData::Hit {
                     t: neg,
                     point,
@@ -72,8 +75,9 @@ impl Hittable for Sphere {
                     matter: self.matter,
                 }
             }
-            (_, pos) if pos > 0.0 => {
-                let point = source + target * pos;
+            (_, pos) if !pos.is_nan() && pos.is_sign_positive() => {
+                let point = source + towards * pos;
+                debug_assert!(self.bounds().through(source, towards));
                 HitData::Hit {
                     t: pos,
                     point,
@@ -86,9 +90,8 @@ impl Hittable for Sphere {
     }
 
     fn bounds(&self) -> BoundingBox<f64> {
-        let center = self.center;
-        let (x, y, z) = (center.x(), center.y(), center.z());
-        let r = self.radius;
-        BoundingBox::new((x - r, x + r), (y - r, y + r), (z - r, z + r))
+        let min = self.center - self.radius;
+        let max = self.center + self.radius;
+        BoundingBox::new((min.x(), max.x()), (min.y(), max.y()), (min.z(), max.z()))
     }
 }

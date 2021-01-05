@@ -1,24 +1,20 @@
 package source
 
 import (
-	"math"
 	"math/rand"
 )
 
 // Scene represents the view
 type Scene struct {
 	source, corner, horizon, vertical Vector
-	objects                           []Hittable
+	list                              Hittable
 	aperture                          float64
 }
 
 // NewScene returns a new View
 func NewScene(source, corner, horizon, vertical Vector, aperture float64) Scene {
-	return Scene{source, corner, horizon, vertical, make([]Hittable, 0), aperture}
+	return Scene{source, corner, horizon, vertical, nil, aperture}
 }
-
-// Register registers an object to hit
-func (scn *Scene) Register(obj Hittable) { scn.objects = append(scn.objects, obj) }
 
 // Source returns the source of the scene
 func (scn Scene) Source() Vector { return scn.source }
@@ -50,15 +46,20 @@ func (scn *Scene) VerticalTo(vertical Vector) { scn.vertical = vertical }
 // ApertureTo returns the aperture of the scene
 func (scn *Scene) ApertureTo(aperture float64) { scn.aperture = aperture }
 
+// Save switches the Scene's backend
+func (scn *Scene) Save(h Hittable) {
+	scn.list = h
+}
+
 // ColorTrace tracks the color of a path
 func (scn Scene) ColorTrace(source, towards Vector, depth int, gen *rand.Rand) Vector {
 	color := NewVector(1, 1, 1)
 	for d := 0; d < depth; d++ {
-		if data := scn.Ray(source, towards); data.Err == nil {
-			matter := data.Matter
-			reflected := matter.Scatter(towards, data.Normal.Unit(), gen)
+		if data := scn.Hit(source, towards); data.HasHit() {
+			matter := data.Matter()
+			reflected := matter.Scatter(towards, data.Normal().Unit(), gen)
 			color.IMul(matter.Albedo())
-			source, towards = data.Point, reflected
+			source, towards = data.Point(), reflected
 		} else {
 			t := (towards.Unit().Y() + 1) * .5
 			background := NewVector(1, 1, 1).MulS(1 - t).Add(NewVector(.5, .7, 1).MulS(t))
@@ -90,17 +91,13 @@ func (scn Scene) Color(x, y, ns, depth int, dx, dy float64, gen *rand.Rand) (r, 
 	return
 }
 
-// Ray represents a ray
-func (scn Scene) Ray(source, towards Vector) HitData {
-	towards = towards.Unit()
-	closest := HitData{T: math.Inf(1), Err: ErrNotHit}
-	for _, obj := range scn.objects {
-		data := obj.Hit(source, towards)
-		if data.Err == nil && data.T < closest.T {
-			closest = data
-		}
-	}
-	return closest
+// Hit implements Hittable for Scene
+func (scn Scene) Hit(source, towards Vector) HitData {
+	return scn.list.Hit(source, towards)
+}
+
+func (scn Scene) Bounds() Box {
+	return scn.list.Bounds()
 }
 
 // RandomDisk creates a random pair of tuple that lies in a unit disk

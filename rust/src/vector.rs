@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use num::{self, Num, Signed};
 use rand::Rng;
@@ -309,6 +309,22 @@ where
             x: -self.x,
             y: -self.y,
             z: -self.z,
+        }
+    }
+}
+
+impl<T> Index<usize> for Vector<T>
+where
+    T: Arithmetic + Num,
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => unreachable!(),
         }
     }
 }

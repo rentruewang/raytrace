@@ -2,11 +2,8 @@ use raytrace_rs::{Hittable, List, Material, Scene, Sphere, Tree, Vector};
 
 use rand::{self, Rng};
 
-// pub const NX: usize = 1200;
-// pub const NY: usize = 675;
-
-pub const NX: usize = 400;
-pub const NY: usize = 225;
+pub const NX: usize = 1200;
+pub const NY: usize = 670;
 
 pub const NS: usize = 100;
 pub const DEP: usize = 50;

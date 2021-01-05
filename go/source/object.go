@@ -1,30 +1,53 @@
 package source
 
 import (
-	"errors"
 	"math"
 )
 
-// ErrNotHit indicates that the ray does not intersect with the object
-var ErrNotHit = errors.New("ray does not intersect with anything")
-
 // HitData stores data in one hit
 type HitData struct {
-	T   float64
-	Err error
+	t float64
 
-	Point, Normal Vector
-	Matter        Material
+	point, normal Vector
+	matter        Material
 }
 
-// HitDataNew returns a new HitData
-func HitDataNew(T float64, Err error, Point, Normal Vector, Matter Material) HitData {
-	return HitData{T, Err, Point, Normal, Matter}
+// NewHitData returns a new HitData
+func NewHitData(t float64, point, normal Vector, matter Material) HitData {
+	return HitData{t, point, normal, matter}
+}
+
+// NewHit creates a new data indicating that the object is hit
+func NewHit(t float64, point, normal Vector, matter Material) HitData {
+	return HitData{t, point, normal, matter}
+}
+
+// NewMiss creates a new HitData indicating that the object has been missed
+func NewMiss() HitData {
+	return HitData{t: PosInf}
+}
+
+// T returns the distance at which the object is hit
+func (hd HitData) T() float64 { return hd.t }
+
+// Point shows where the object is hit
+func (hd HitData) Point() Vector { return hd.point }
+
+// Normal points out of the surface at the point the surface is hit
+func (hd HitData) Normal() Vector { return hd.normal }
+
+// Matter shows what kind of surface is hit
+func (hd HitData) Matter() Material { return hd.matter }
+
+// HasHit indicates that something is hit
+func (hd HitData) HasHit() bool {
+	return hd.t != PosInf
 }
 
 // Hittable represents something you can hit
 type Hittable interface {
 	Hit(source, towards Vector) (data HitData)
+	Bounds() Box
 }
 
 // Sphere represents a sphere
@@ -60,7 +83,7 @@ func (sph *Sphere) MatterTo(matter Material) { sph.matter = matter }
 // Normal computes the normal of a point
 func (sph Sphere) Normal(point Vector) Vector { return point.Sub(sph.center) }
 
-// Hit implements the interface for Hittable
+// Hit implements Hittable for Sphere
 func (sph Sphere) Hit(source, towards Vector) HitData {
 	radius := sph.radius
 
@@ -75,11 +98,23 @@ func (sph Sphere) Hit(source, towards Vector) HitData {
 	switch {
 	case neg > 0:
 		point := source.Add(towards.MulS(neg))
-		return HitData{T: neg, Point: point, Normal: sph.Normal(point), Matter: sph.matter}
+		return NewHit(neg, point, sph.Normal(point), sph.matter)
 	case pos > 0:
 		point := source.Add(towards.MulS(pos))
-		return HitData{T: pos, Point: point, Normal: sph.Normal(point), Matter: sph.matter}
+		return NewHit(pos, point, sph.Normal(point), sph.matter)
 	default:
-		return HitData{Err: ErrNotHit}
+		return NewMiss()
 	}
+}
+
+// Bounds implements Hittable for Sphere
+func (sph Sphere) Bounds() Box {
+	min := sph.center.SubS(sph.radius)
+	max := sph.center.AddS(sph.radius)
+
+	return NewBox(
+		TupleFloat{min[0], max[0]},
+		TupleFloat{min[1], max[1]},
+		TupleFloat{min[2], max[2]},
+	)
 }

@@ -1,9 +1,10 @@
-use crate::{BoundingBox, HitData, Hittable, List, Tree, Vector};
+use crate::{BoundingBox, HitData, Hittable, Vector};
 
 use std::f64;
 
 use rand::{rngs::ThreadRng, Rng};
 
+#[derive(Debug)]
 pub struct Scene<'a> {
     source: Vector<f64>,
     corner: Vector<f64>,
@@ -52,7 +53,7 @@ impl<'a> Scene<'a> {
         trng: &mut ThreadRng,
     ) -> Vector<f64> {
         let (mut starting, mut towards) = (starting, towards);
-        let mut color = Vector::new(1_f64, 1_f64, 1_f64);
+        let mut color = Vector::uniform(1_f64);
         for _ in 0..depth {
             if let HitData::Hit {
                 point,
@@ -67,12 +68,12 @@ impl<'a> Scene<'a> {
                 towards = reflected;
             } else {
                 let t = 0.5 * (towards.unit().y() + 1_f64);
-                let background = Vector::new(1_f64, 1_f64, 1_f64) * (1_f64 - t)
-                    + Vector::new(0.5, 0.7, 1_f64) * t;
+                let background =
+                    Vector::uniform(1_f64) * (1_f64 - t) + Vector::new(0.5, 0.7, 1_f64) * t;
                 return color * background;
             }
         }
-        Vector::new(0_f64, 0_f64, 0_f64)
+        Vector::uniform(0_f64)
     }
 
     pub fn color(
@@ -87,7 +88,7 @@ impl<'a> Scene<'a> {
         let v = self.vertical.unit() * dy;
         let start = self.source + h + v;
 
-        let mut color = Vector::new(0_f64, 0_f64, 0_f64);
+        let mut color = Vector::uniform(0_f64);
         for _ in 0..ns {
             let gens: (f64, f64) = (trng.gen(), trng.gen());
             let i = (i as f64 + gens.0) / nx as f64;
@@ -118,8 +119,8 @@ impl<'a> Scene<'a> {
 }
 
 impl<'a> Hittable for Scene<'a> {
-    fn hit(&self, source: Vector<f64>, target: Vector<f64>) -> HitData {
-        self.object.as_ref().unwrap().hit(source, target)
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
+        self.object.as_ref().unwrap().hit(source, towards)
     }
 
     fn bounds(&self) -> BoundingBox<f64> {

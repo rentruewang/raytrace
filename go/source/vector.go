@@ -118,6 +118,31 @@ func (vec Vector) Sqrt() Vector {
 // IsNaN indicates if a vector has an NaN
 func (vec Vector) IsNaN() bool { return math.IsNaN(vec[0]) || math.IsNaN(vec[1]) || math.IsNaN(vec[2]) }
 
+// VecUniform creates a vector whose elements are equal to one another
+func VecUniform(n float64) Vector {
+	return Vector{n, n, n}
+}
+
+// VecI creates i vector
+func VecI() Vector {
+	return Vector{1, 0, 0}
+}
+
+// VecJ creates j vector
+func VecJ() Vector {
+	return Vector{0, 1, 0}
+}
+
+// VecK creates k vector
+func VecK() Vector {
+	return Vector{0, 0, 1}
+}
+
+// Abs makes every element in the vector positive
+func (vec Vector) Abs() Vector {
+	return Vector{math.Abs(vec[0]), math.Abs(vec[1]), math.Abs(vec[2])}
+}
+
 // Cross is a cross product for two 3D vectors
 func (vec Vector) Cross(other Vector) Vector {
 	return Vector{
@@ -127,8 +152,13 @@ func (vec Vector) Cross(other Vector) Vector {
 	}
 }
 
-// VectorRandom creates a random vector inside a sphere that has its radius given
-func VectorRandom(radius float64, gen *rand.Rand) Vector {
+// VectorRandom creates a random vector
+func VectorRandom(gen *rand.Rand) Vector {
+	return Vector{gen.Float64(), gen.Float64(), gen.Float64()}
+}
+
+// VectorRandomDisk creates a random vector inside a sphere that has its radius given
+func VectorRandomDisk(radius float64, gen *rand.Rand) Vector {
 	for {
 		random := Vector{gen.Float64(), gen.Float64(), gen.Float64()}
 		if random.L2() <= 1 {

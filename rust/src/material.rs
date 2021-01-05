@@ -51,18 +51,19 @@ impl Material {
             } => {
                 let input = input.unit();
                 let cosine = input.dot(&normal);
-                let ratio = if cosine < 0_f64 {
+                let ratio = if cosine.is_normal() && cosine.is_sign_negative() {
                     1_f64 / (*refractive)
                 } else {
                     *refractive
                 };
                 let sine_squared = 1_f64 - cosine * cosine;
                 let cosine_squared = 1_f64 - ratio * ratio * sine_squared;
-                let refract = cosine <= 0_f64 || cosine_squared >= 0_f64;
+                let refract = !cosine.is_nan()
+                    && (cosine.is_sign_negative() || cosine_squared.is_sign_positive());
 
                 let random: f64 = trng.gen();
-                // shilick approximates the *REFLECT* probability
-                // hence here we take the refract probablility which is (1 - schilick)
+                // shilick approximates the *reflect* probability
+                // hence here we take the *refract* probablility which is (1 - schilick)
                 if refract && random > Material::schilick(num::abs(cosine), *refractive) {
                     let rand_blur = Vector::random_ball(*blur, trng);
                     (input + normal * cosine) * ratio - normal * cosine_squared.sqrt() + rand_blur

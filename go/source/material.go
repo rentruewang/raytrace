@@ -25,7 +25,7 @@ func (mat *Matte) AlbedoTo(albedo Vector) { mat.albedo = albedo }
 
 // Scatter implementation for Matte, given a unit length normal vector
 func (mat Matte) Scatter(input, normal Vector, gen *rand.Rand) Vector {
-	return VectorRandom(1, gen).Add(normal)
+	return VectorRandomDisk(1, gen).Add(normal)
 }
 
 // Metal represents the metal type
@@ -51,7 +51,7 @@ func (met *Metal) AlbedoTo(albedo Vector) { met.albedo = albedo }
 
 // Scatter implementation for Metal, given a unit length normal vector
 func (met Metal) Scatter(input, normal Vector, gen *rand.Rand) Vector {
-	random := VectorRandom(met.blur, gen)
+	random := VectorRandomDisk(met.blur, gen)
 	casted := normal.MulS(input.Dot(normal) * 2)
 	return random.Add(input).Sub(casted)
 }
@@ -107,7 +107,7 @@ func (gls Glass) Scatter(input, normal Vector, gen *rand.Rand) Vector {
 	refract := cosine <= 0. || cosineSquared >= 0.
 
 	random := rand.Float64()
-	randomBlur := VectorRandom(gls.blur, gen)
+	randomBlur := VectorRandomDisk(gls.blur, gen)
 	if refract && random > Schlick(math.Abs(cosine), gls.refractive) {
 		firstTerm := input.Add(normal.MulS(cosine))
 		secondTerm := normal.MulS(math.Sqrt(cosineSquared))
