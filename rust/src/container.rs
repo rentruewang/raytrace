@@ -43,7 +43,7 @@ impl<'a> Hittable for List<'a> {
     fn bounds(&self) -> BoundingBox<f64> {
         self.objects
             .iter()
-            .map(|obj| obj.bounds())
+            .map(Hittable::bounds)
             .fold_first(|acc, val| BoundingBox::wraps(acc, val))
             .unwrap()
     }
@@ -159,13 +159,17 @@ impl Axis {
         // using fold here because the iter::sum() does not work
         let center: Vector<f64> = list
             .iter()
-            .map(|obj: &Arc<dyn Hittable>| obj.bounds().center())
+            .map(Hittable::bounds)
+            .map(|ref obj| obj.center())
             .fold(Vector::default(), |acc, val| acc + val)
             / len;
 
         let naive_var: Vector<f64> = list
             .iter()
-            .map(|obj| (obj.bounds().center() - center).abs())
+            .map(Hittable::bounds)
+            .map(|ref obj| obj.center())
+            .map(|v| v - center)
+            .map(|ref v| v.abs())
             .fold(Vector::default(), |acc, val| acc + val);
 
         // ! workaround

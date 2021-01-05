@@ -380,10 +380,9 @@ impl Vector<f64> {
     }
 
     pub fn random_ball(radius: f64, trng: &mut impl Rng) -> Self {
-        const ONE: f64 = 1_f64;
         loop {
             let rand_vec = Self::random(trng);
-            if rand_vec.l2() <= ONE {
+            if rand_vec.l2() <= 1_f64 {
                 return rand_vec * radius;
             }
         }

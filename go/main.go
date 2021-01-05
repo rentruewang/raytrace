@@ -10,7 +10,13 @@ import (
 	"path"
 	"runtime"
 	"time"
+
+	pb "github.com/cheggaaa/pb/v3"
 )
+
+// None is nothing
+type None struct {
+}
 
 func main() {
 	img := image.NewRGBA(image.Rect(0, 0, NX, NY))
@@ -19,12 +25,16 @@ func main() {
 
 	const TOTAL = NX * NY
 
+	progbar := pb.StartNew(TOTAL)
+
+	done := make(chan None)
+
 	type RGB struct {
 		idx     int
 		R, G, B uint8
 	}
 
-	worker := func(i int, rgb chan<- RGB, genChan chan *rand.Rand) {
+	worker := func(i int, rgb chan<- RGB, genChan chan *rand.Rand, doneChan chan<- None) {
 		// implicit throttle
 		gen := <-genChan
 		x, y := i/NY, i%NY
@@ -32,7 +42,15 @@ func main() {
 		// send the generator back
 		genChan <- gen
 		rgb <- RGB{i, r, g, b}
+		doneChan <- None{}
 	}
+
+	go func() {
+		for i := 0; i < TOTAL; i++ {
+			progbar.Increment()
+			<-done
+		}
+	}()
 
 	numCPU := runtime.NumCPU()
 	rgbChan := make(chan RGB, numCPU)
@@ -50,7 +68,7 @@ func main() {
 	}
 
 	for i := 0; i < TOTAL; i++ {
-		go worker(i, rgbChan, genChan)
+		go worker(i, rgbChan, genChan, done)
 	}
 
 	for i := 0; i < NX*NY; i++ {
@@ -70,7 +88,7 @@ func main() {
 	fname := "image.png"
 
 	fullPath := path.Join(folder, fname)
-	os.Mkdir(folder, 0644)
+	os.Mkdir(folder, 0744)
 
 	var file *os.File
 	var err error

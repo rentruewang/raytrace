@@ -36,12 +36,15 @@ impl<'a> Scene<'a> {
     pub fn source(&self) -> Vector<f64> {
         self.source
     }
+
     pub fn corner(&self) -> Vector<f64> {
         self.corner
     }
+
     pub fn horizon(&self) -> Vector<f64> {
         self.horizon
     }
+
     pub fn vertical(&self) -> Vector<f64> {
         self.vertical
     }
@@ -58,11 +61,11 @@ impl<'a> Scene<'a> {
             if let HitData::Hit {
                 point,
                 normal,
-                ref matter,
+                matter,
                 ..
             } = self.hit(starting, towards)
             {
-                let reflected = matter.scatter(towards, normal.unit(), trng);
+                let reflected = matter.scatter(towards, normal, trng);
                 color *= matter.albedo();
                 starting = point;
                 towards = reflected;

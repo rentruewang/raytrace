@@ -118,23 +118,23 @@ func (vec Vector) Sqrt() Vector {
 // IsNaN indicates if a vector has an NaN
 func (vec Vector) IsNaN() bool { return math.IsNaN(vec[0]) || math.IsNaN(vec[1]) || math.IsNaN(vec[2]) }
 
-// VecUniform creates a vector whose elements are equal to one another
-func VecUniform(n float64) Vector {
+// VectorUniform creates a vector whose elements are equal to one another
+func VectorUniform(n float64) Vector {
 	return Vector{n, n, n}
 }
 
-// VecI creates i vector
-func VecI() Vector {
+// VectorI creates i vector
+func VectorI() Vector {
 	return Vector{1, 0, 0}
 }
 
-// VecJ creates j vector
-func VecJ() Vector {
+// VectorJ creates j vector
+func VectorJ() Vector {
 	return Vector{0, 1, 0}
 }
 
-// VecK creates k vector
-func VecK() Vector {
+// VectorK creates k vector
+func VectorK() Vector {
 	return Vector{0, 0, 1}
 }
 
@@ -157,11 +157,11 @@ func VectorRandom(gen *rand.Rand) Vector {
 	return Vector{gen.Float64(), gen.Float64(), gen.Float64()}
 }
 
-// VectorRandomDisk creates a random vector inside a sphere that has its radius given
-func VectorRandomDisk(radius float64, gen *rand.Rand) Vector {
+// VectorRandomBall creates a random vector inside a sphere that has its radius given
+func VectorRandomBall(radius float64, gen *rand.Rand) Vector {
 	for {
-		random := Vector{gen.Float64(), gen.Float64(), gen.Float64()}
-		if random.L2() <= 1 {
+		random := VectorRandom(gen)
+		if random.L2() <= 1. {
 			return random.MulS(radius)
 		}
 	}

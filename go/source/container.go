@@ -94,11 +94,11 @@ func largerBound(a, b TupleFloat) (result TupleFloat) {
 
 // Wraps wraps two bounding boxes into a single box
 func Wraps(a, b Box) Box {
-	return Box{
+	return NewBox(
 		largerBound(a[0], b[0]),
 		largerBound(a[1], b[1]),
 		largerBound(a[2], b[2]),
-	}
+	)
 }
 
 // Min returns the minimum corner in the bounding box
@@ -241,8 +241,7 @@ func recursivePartition(list []Hittable) Hittable {
 	case 1:
 		return list[0]
 	case 2:
-		node := TreeNode{left: list[0], right: list[1]}
-		return node
+		return NewTreeNode(list[0], list[1])
 	default:
 		var compare func(i, j int) bool
 
@@ -271,16 +270,13 @@ func recursivePartition(list []Hittable) Hittable {
 		rightNode := recursivePartition(list[half:])
 
 		return NewTreeNode(leftNode, rightNode)
-
 	}
 }
 
 // NewTree creates a new tree from a List
 func NewTree(list List) Tree {
 	objects := list.objects
-	root := recursivePartition(objects)
-
-	return Tree{root}
+	return Tree{recursivePartition(objects)}
 }
 
 // Hit implments Hittable for Tree

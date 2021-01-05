@@ -1,6 +1,6 @@
 use crate::{BoundingBox, Material, Vector};
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 #[derive(Clone, Copy, Debug)]
 pub enum HitData {
@@ -16,6 +16,26 @@ pub enum HitData {
 pub trait Hittable: Debug + Send + Sync {
     fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData;
     fn bounds(&self) -> BoundingBox<f64>;
+}
+
+impl<'a> Hittable for Box<dyn Hittable + 'a> {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
+        self.as_ref().hit(source, towards)
+    }
+
+    fn bounds(&self) -> BoundingBox<f64> {
+        self.as_ref().bounds()
+    }
+}
+
+impl<'a> Hittable for Arc<dyn Hittable + 'a> {
+    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
+        self.as_ref().hit(source, towards)
+    }
+
+    fn bounds(&self) -> BoundingBox<f64> {
+        self.as_ref().bounds()
+    }
 }
 
 #[derive(Debug)]
@@ -65,7 +85,7 @@ impl Hittable for Sphere {
         let pos = (-b + base) / a;
 
         match (neg, pos) {
-            (neg, _) if !neg.is_nan() && neg.is_sign_positive() => {
+            (neg, _) if neg.is_normal() && neg.is_sign_positive() => {
                 let point = source + towards * neg;
                 debug_assert!(self.bounds().through(source, towards));
                 HitData::Hit {
@@ -75,7 +95,7 @@ impl Hittable for Sphere {
                     matter: self.matter,
                 }
             }
-            (_, pos) if !pos.is_nan() && pos.is_sign_positive() => {
+            (_, pos) if pos.is_normal() && pos.is_sign_positive() => {
                 let point = source + towards * pos;
                 debug_assert!(self.bounds().through(source, towards));
                 HitData::Hit {

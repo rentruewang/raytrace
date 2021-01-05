@@ -53,7 +53,7 @@ func (scn *Scene) Save(h Hittable) {
 
 // ColorTrace tracks the color of a path
 func (scn Scene) ColorTrace(source, towards Vector, depth int, gen *rand.Rand) Vector {
-	color := NewVector(1, 1, 1)
+	color := VectorUniform(1.)
 	for d := 0; d < depth; d++ {
 		if data := scn.Hit(source, towards); data.HasHit() {
 			matter := data.Matter()
@@ -61,12 +61,12 @@ func (scn Scene) ColorTrace(source, towards Vector, depth int, gen *rand.Rand) V
 			color.IMul(matter.Albedo())
 			source, towards = data.Point(), reflected
 		} else {
-			t := (towards.Unit().Y() + 1) * .5
-			background := NewVector(1, 1, 1).MulS(1 - t).Add(NewVector(.5, .7, 1).MulS(t))
+			t := .5 * (towards.Unit().Y() + 1.)
+			background := VectorUniform(1.).MulS(1. - t).Add(NewVector(.5, .7, 1).MulS(t))
 			return color.Mul(background)
 		}
 	}
-	return Vector{0, 0, 0}
+	return VectorUniform(0.)
 }
 
 // Color determines the color at a given position
@@ -96,6 +96,7 @@ func (scn Scene) Hit(source, towards Vector) HitData {
 	return scn.list.Hit(source, towards)
 }
 
+// Bounds implements Hittable for Scene
 func (scn Scene) Bounds() Box {
 	return scn.list.Bounds()
 }

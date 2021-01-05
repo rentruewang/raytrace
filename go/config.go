@@ -8,16 +8,16 @@ import (
 )
 
 // NX is the width of the image
-const NX = 1200
+const NX = 400
 
 // NY is the height of the image
-const NY = 675
+const NY = 200
 
 // NS is the number of samples per pixel
 const NS = 100
 
 // DEP is the depth of our recursive path finder
-const DEP = 50
+const DEP = 10
 
 // MAXU8 is the maximum number a byte can hold
 const MAXU8 = 256
@@ -91,12 +91,12 @@ func Scenes() src.Scene {
 	}
 
 	list.Register(src.NewSphere(
-		src.NewVector(0., -1000., 0.), 1000, src.NewMatte(src.NewVector(.9, .9, 0.)),
+		src.NewVector(0., -1000., 0.), 1000, src.NewMatte(src.VectorUniform(.9)),
 	))
 
 	list.Register(src.NewSphere(
-		src.VecJ(), 1., src.NewGlass(
-			src.VecUniform(1.), 0., 1.5,
+		src.VectorJ(), 1., src.NewGlass(
+			src.VectorUniform(1.), 0., 1.5,
 		)),
 	)
 

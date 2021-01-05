@@ -32,6 +32,8 @@ impl Material {
         normal: Vector<f64>,
         trng: &mut ThreadRng,
     ) -> Vector<f64> {
+        let input = input.unit();
+        let normal = normal.unit();
         match self {
             Material::Matte { .. } => {
                 // Mathematical Lambertian
@@ -49,7 +51,6 @@ impl Material {
             Material::Glass {
                 blur, refractive, ..
             } => {
-                let input = input.unit();
                 let cosine = input.dot(&normal);
                 let ratio = if cosine.is_normal() && cosine.is_sign_negative() {
                     1_f64 / (*refractive)
@@ -84,6 +85,7 @@ impl Material {
         let casted = normal * (input.dot(&normal) * 2_f64);
         random + input - casted
     }
+
     fn schilick(cosine: f64, ratio: f64) -> f64 {
         let r = (1_f64 - ratio) / (1_f64 + ratio);
         let sq = r * r;

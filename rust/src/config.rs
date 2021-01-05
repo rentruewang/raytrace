@@ -3,15 +3,15 @@ use raytrace_rs::{Hittable, List, Material, Scene, Sphere, Tree, Vector};
 use rand::{self, Rng};
 
 pub const NX: usize = 1200;
-pub const NY: usize = 670;
+pub const NY: usize = 675;
 
 pub const NS: usize = 100;
-pub const DEP: usize = 50;
+pub const DEP: usize = 10;
 
 pub const DEG: f64 = 30_f64;
 pub const APERTURE: f64 = 0_f64;
 
-pub const TREE: bool = true;
+pub const TREE: bool = false;
 pub const RATIO: f64 = NX as f64 / NY as f64;
 
 fn material(material_code: f64, albedo: Vector<f64>, blur: f64, refractive: f64) -> Material {
@@ -78,7 +78,7 @@ pub fn create<'a>() -> Scene<'a> {
         Vector::new(0_f64, -1000_f64, 0_f64),
         1000_f64,
         Material::Matte {
-            albedo: Vector::new(0.9, 0.9, 0_f64),
+            albedo: Vector::uniform(0.9),
         },
     ));
 
