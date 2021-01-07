@@ -378,7 +378,7 @@ impl Vector<f64> {
         }
     }
 
-    pub fn random(trng: &mut impl Rng) -> Self {
+    pub fn random(trng: &mut ThreadRng) -> Self {
         let (x, y, z) = trng.gen();
         Self { x, y, z }
     }

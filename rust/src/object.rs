@@ -62,7 +62,7 @@ impl Hittable for Sphere {
         let oc = self.normal(&source);
         let a = towards.l2();
         let b = oc.dot(&towards);
-        let c = oc.l2() - radius * radius;
+        let c = oc.l2() - radius.powi(2);
 
         let base = (b.powi(2) - a * c).sqrt();
         let neg = (-b - base) / a;
