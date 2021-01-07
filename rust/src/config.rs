@@ -1,6 +1,10 @@
-use raytrace_rs::{Hittable, List, Material, Scene, Sphere, Tree, Vector};
+use raytrace_rs::{Glass, Hittable, List, Material, Matte, Metal, Scene, Sphere, Tree, Vector};
+
+use std::sync::Arc;
 
 use rand::{self, Rng};
+
+pub const PROGRESS: usize = 1000;
 
 pub const NX: usize = 1200;
 pub const NY: usize = 675;
@@ -11,22 +15,23 @@ pub const DEP: usize = 10;
 pub const DEG: f64 = 30_f64;
 pub const APERTURE: f64 = 0_f64;
 
-pub const TREE: bool = false;
+pub const TREE: bool = true;
 pub const RATIO: f64 = NX as f64 / NY as f64;
 
-fn material(material_code: f64, albedo: Vector<f64>, blur: f64, refractive: f64) -> Material {
+fn material(
+    material_code: f64,
+    albedo: Vector<f64>,
+    blur: f64,
+    refractive: f64,
+) -> Arc<dyn Material> {
     let mat = (material_code * 3_f64) as usize;
     let albedo = albedo / 2_f64 + 0.5;
     let blur = blur / 2_f64;
     let refractive = refractive + 1_f64;
     match mat {
-        0 => Material::Matte { albedo },
-        1 => Material::Metal { albedo, blur },
-        2 => Material::Glass {
-            albedo,
-            blur,
-            refractive,
-        },
+        0 => Arc::new(Matte::new(albedo)),
+        1 => Arc::new(Metal::new(albedo, blur)),
+        2 => Arc::new(Glass::new(albedo, blur, refractive)),
         _ => unreachable!(),
     }
 }
@@ -35,8 +40,8 @@ pub fn create<'a>() -> Scene<'a> {
     use std::f64::consts::PI;
 
     let eye = Vector::new(13_f64, 2_f64, 3_f64);
-    let lookat = Vector::new(0_f64, 0_f64, 0_f64);
-    let viewup = Vector::new(0_f64, 1_f64, 0_f64);
+    let lookat = Vector::o();
+    let viewup = Vector::j();
 
     let vision = lookat - eye;
     let rad = PI * DEG / 360_f64;
@@ -77,36 +82,25 @@ pub fn create<'a>() -> Scene<'a> {
     list.register(Sphere::new(
         Vector::new(0_f64, -1000_f64, 0_f64),
         1000_f64,
-        Material::Matte {
-            albedo: Vector::uniform(0.9),
-        },
+        Arc::new(Matte::new(Vector::uniform(0.9))),
     ));
 
     list.register(Sphere::new(
         Vector::j(),
         1_f64,
-        Material::Glass {
-            albedo: Vector::uniform(1_f64),
-            blur: 0_f64,
-            refractive: 1.5,
-        },
+        Arc::new(Glass::new(Vector::uniform(1_f64), 0_f64, 1.5)),
     ));
 
     list.register(Sphere::new(
         Vector::new(-4_f64, 1_f64, 0_f64),
         1_f64,
-        Material::Matte {
-            albedo: Vector::new(0.4, 0.2, 0.1),
-        },
+        Arc::new(Matte::new(Vector::new(0.4, 0.2, 0.1))),
     ));
 
     list.register(Sphere::new(
         Vector::new(4_f64, 1_f64, 0_f64),
         1_f64,
-        Material::Metal {
-            albedo: Vector::new(0.7, 0.6, 0.5),
-            blur: 0_f64,
-        },
+        Arc::new(Metal::new(Vector::new(0.7, 0.6, 0.5), 0_f64)),
     ));
 
     let mut scn = Scene::new(

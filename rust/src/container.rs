@@ -1,6 +1,6 @@
 use crate::{Arithmetic, HitData, Hittable, Vector};
 
-use std::{cmp::PartialOrd, sync::Arc};
+use std::{cmp::PartialOrd, ops::*, sync::Arc};
 
 use num::{self, Num};
 
@@ -25,18 +25,17 @@ impl<'a> List<'a> {
 
 impl<'a> Hittable for List<'a> {
     fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
-        self.objects.iter().fold(HitData::Miss, |min_hit, obj| {
-            let mut output = min_hit;
+        self.objects.iter().fold(HitData::Miss, |mut min_hit, obj| {
             let data = obj.hit(source, towards);
             if let HitData::Hit { t, .. } = data {
                 match min_hit {
-                    HitData::Hit { t: min_t, .. } if t < min_t => output = data,
+                    HitData::Hit { t: min_t, .. } if t < min_t => min_hit = data,
                     HitData::Hit { .. } => (),
-                    HitData::Miss => output = data,
+                    HitData::Miss => min_hit = data,
                 }
             }
 
-            output
+            min_hit
         })
     }
 
@@ -44,7 +43,7 @@ impl<'a> Hittable for List<'a> {
         self.objects
             .iter()
             .map(Hittable::bounds)
-            .fold_first(|acc, val| BoundingBox::wraps(acc, val))
+            .fold_first(BoundingBox::wraps)
             .unwrap()
     }
 }
@@ -161,7 +160,7 @@ impl Axis {
             .iter()
             .map(Hittable::bounds)
             .map(|ref obj| obj.center())
-            .fold(Vector::default(), |acc, val| acc + val)
+            .fold(Vector::default(), Vector::add)
             / len;
 
         let naive_var: Vector<f64> = list
@@ -170,7 +169,7 @@ impl Axis {
             .map(|ref obj| obj.center())
             .map(|v| v - center)
             .map(|ref v| v.abs())
-            .fold(Vector::default(), |acc, val| acc + val);
+            .fold(Vector::default(), Vector::add);
 
         // ! workaround
         // using if's here cause I've not thought of a better solution
@@ -219,13 +218,13 @@ impl<'a> Hittable for TreeNode<'a> {
             (hit @ HitData::Hit { .. }, HitData::Miss)
             | (HitData::Miss, hit @ HitData::Hit { .. }) => hit,
             (
-                left_hit @ HitData::Hit { t: left_t, .. },
-                right_hit @ HitData::Hit { t: right_t, .. },
+                ref left_hit @ HitData::Hit { t: left_t, .. },
+                ref right_hit @ HitData::Hit { t: right_t, .. },
             ) => {
                 if left_t < right_t {
-                    left_hit
+                    left_hit.clone()
                 } else {
-                    right_hit
+                    right_hit.clone()
                 }
             }
         }

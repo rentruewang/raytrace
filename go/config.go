@@ -7,11 +7,14 @@ import (
 	"time"
 )
 
+// PROGRESS shows the iteration after which current progress will be logged
+const PROGRESS = 1000
+
 // NX is the width of the image
-const NX = 400
+const NX = 1200
 
 // NY is the height of the image
-const NY = 200
+const NY = 675
 
 // NS is the number of samples per pixel
 const NS = 100
@@ -54,9 +57,9 @@ func randomMaterial(materialCode, blur, refractive float64, albedo src.Vector) s
 
 // Scenes are set up here
 func Scenes() src.Scene {
-	eye := src.NewVector(13, 2, 3)
-	lookat := src.NewVector(0, 0, 0)
-	viewup := src.NewVector(0, 1, 0)
+	eye := src.NewVector(13., 2., 3.)
+	lookat := src.VectorO()
+	viewup := src.VectorJ()
 
 	vision := lookat.Sub(eye)
 
@@ -91,7 +94,7 @@ func Scenes() src.Scene {
 	}
 
 	list.Register(src.NewSphere(
-		src.NewVector(0., -1000., 0.), 1000, src.NewMatte(src.VectorUniform(.9)),
+		src.NewVector(0., -1000., 0.), 1000., src.NewMatte(src.VectorUniform(.9)),
 	))
 
 	list.Register(src.NewSphere(

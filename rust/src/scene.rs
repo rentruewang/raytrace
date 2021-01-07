@@ -1,6 +1,6 @@
 use crate::{BoundingBox, HitData, Hittable, Vector};
 
-use std::f64;
+use std::{f64, ops::*};
 
 use rand::{rngs::ThreadRng, Rng};
 
@@ -76,7 +76,7 @@ impl<'a> Scene<'a> {
                 return color * background;
             }
         }
-        Vector::uniform(0_f64)
+        Vector::o()
     }
 
     pub fn color(
@@ -91,16 +91,18 @@ impl<'a> Scene<'a> {
         let v = self.vertical.unit() * dy;
         let start = self.source + h + v;
 
-        let mut color = Vector::uniform(0_f64);
-        for _ in 0..ns {
-            let gens: (f64, f64) = (trng.gen(), trng.gen());
-            let i = (i as f64 + gens.0) / nx as f64;
-            let j = (j as f64 + gens.1) / ny as f64;
-            let end = self.corner + self.horizon * i + self.vertical * j;
-            let towards = end - start;
+        let color = (0..ns)
+            .into_iter()
+            .map(|_| {
+                let gens: (f64, f64) = (trng.gen(), trng.gen());
+                let i = (i as f64 + gens.0) / nx as f64;
+                let j = (j as f64 + gens.1) / ny as f64;
+                let end = self.corner + self.horizon * i + self.vertical * j;
+                let towards = end - start;
 
-            color += self.color_trace((start, towards), depth, trng);
-        }
+                self.color_trace((start, towards), depth, trng)
+            })
+            .fold(Vector::o(), Vector::add);
         let array = (color / ns as f64 * 255.999).array();
         [array[0] as u8, array[1] as u8, array[2] as u8]
     }

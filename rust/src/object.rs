@@ -1,22 +1,6 @@
-use crate::{BoundingBox, Material, Vector};
+use crate::{BoundingBox, HitData, Hittable, Material, Vector};
 
 use std::{fmt::Debug, sync::Arc};
-
-#[derive(Clone, Copy, Debug)]
-pub enum HitData {
-    Miss,
-    Hit {
-        t: f64,
-        point: Vector<f64>,
-        normal: Vector<f64>,
-        matter: Material,
-    },
-}
-
-pub trait Hittable: Debug + Send + Sync {
-    fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData;
-    fn bounds(&self) -> BoundingBox<f64>;
-}
 
 impl<'a> Hittable for Box<dyn Hittable + 'a> {
     fn hit(&self, source: Vector<f64>, towards: Vector<f64>) -> HitData {
@@ -42,11 +26,11 @@ impl<'a> Hittable for Arc<dyn Hittable + 'a> {
 pub struct Sphere {
     center: Vector<f64>,
     radius: f64,
-    matter: Material,
+    matter: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector<f64>, radius: f64, matter: Material) -> Self {
+    pub fn new(center: Vector<f64>, radius: f64, matter: Arc<dyn Material>) -> Self {
         Self {
             center,
             radius,
@@ -62,8 +46,8 @@ impl Sphere {
         self.radius
     }
 
-    pub fn matter(&self) -> Material {
-        self.matter
+    pub fn matter(&self) -> Arc<dyn Material> {
+        Arc::clone(&self.matter)
     }
 
     pub fn normal(&self, point: &Vector<f64>) -> Vector<f64> {
@@ -92,7 +76,7 @@ impl Hittable for Sphere {
                     t: neg,
                     point,
                     normal: self.normal(&point),
-                    matter: self.matter,
+                    matter: Arc::clone(&self.matter),
                 }
             }
             (_, pos) if pos.is_normal() && pos.is_sign_positive() => {
@@ -102,7 +86,7 @@ impl Hittable for Sphere {
                     t: pos,
                     point,
                     normal: self.normal(&point),
-                    matter: self.matter,
+                    matter: Arc::clone(&self.matter),
                 }
             }
             _ => HitData::Miss,

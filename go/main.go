@@ -47,7 +47,9 @@ func main() {
 
 	go func() {
 		for i := 0; i < TOTAL; i++ {
-			progbar.Increment()
+			if i%PROGRESS == 0 {
+				progbar.SetCurrent(int64(i))
+			}
 			<-done
 		}
 	}()
