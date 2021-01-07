@@ -123,6 +123,9 @@ func VectorUniform(n float64) Vector {
 	return Vector{n, n, n}
 }
 
+// VectorO creates the origin vector
+func VectorO() Vector { return Vector{0, 0, 0} }
+
 // VectorI creates i vector
 func VectorI() Vector {
 	return Vector{1, 0, 0}

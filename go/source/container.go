@@ -61,19 +61,19 @@ func NewTupleFloat(a, b float64) TupleFloat {
 	return TupleFloat{a, b}
 }
 
+func (tf TupleFloat) ordered() TupleFloat {
+	if tf[0] > tf[1] {
+		return TupleFloat{tf[1], tf[0]}
+	}
+	return tf
+}
+
 // Box is a box that bounds
 type Box [3]TupleFloat
 
-func ordered(x TupleFloat) TupleFloat {
-	if x[0] > x[1] {
-		return TupleFloat{x[1], x[0]}
-	}
-	return x
-}
-
 // NewBox creates a new Box
 func NewBox(x, y, z TupleFloat) Box {
-	return Box{ordered(x), ordered(y), ordered(z)}
+	return Box{x.ordered(), y.ordered(), z.ordered()}
 }
 
 func largerBound(a, b TupleFloat) (result TupleFloat) {
@@ -171,7 +171,7 @@ func maxVar(list []Hittable) Axis {
 
 	naiveVariance := Vector{}
 	for _, vec := range list {
-		naiveVariance.IAdd(vec.Bounds().Center().Sub(avg))
+		naiveVariance.IAdd(vec.Bounds().Center().Sub(avg).Abs())
 	}
 
 	if naiveVariance.X() > naiveVariance.Y() && naiveVariance.X() > naiveVariance.Z() {
@@ -211,9 +211,9 @@ func (tn TreeNode) Hit(source, towards Vector) HitData {
 	case leftHasHit && rightHasHit:
 		if leftHit.T() < rightHit.T() {
 			return leftHit
-		} else {
-			return rightHit
 		}
+		return rightHit
+
 	case leftHasHit && !rightHasHit:
 		return leftHit
 	case !leftHasHit && rightHasHit:

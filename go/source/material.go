@@ -55,7 +55,7 @@ func (met Metal) Scatter(input, normal Vector, gen *rand.Rand) Vector {
 	input = input.Unit()
 	normal = normal.Unit()
 	random := VectorRandomBall(met.blur, gen)
-	casted := normal.MulS(input.Dot(normal) * 2)
+	casted := normal.MulS(input.Dot(normal) * 2.)
 	return random.Add(input).Sub(casted)
 }
 

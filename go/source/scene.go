@@ -52,21 +52,21 @@ func (scn *Scene) Save(h Hittable) {
 }
 
 // ColorTrace tracks the color of a path
-func (scn Scene) ColorTrace(source, towards Vector, depth int, gen *rand.Rand) Vector {
+func (scn Scene) ColorTrace(starting, towards Vector, depth int, gen *rand.Rand) Vector {
 	color := VectorUniform(1.)
 	for d := 0; d < depth; d++ {
-		if data := scn.Hit(source, towards); data.HasHit() {
+		if data := scn.Hit(starting, towards); data.HasHit() {
 			matter := data.Matter()
-			reflected := matter.Scatter(towards, data.Normal().Unit(), gen)
+			reflected := matter.Scatter(towards, data.Normal(), gen)
 			color.IMul(matter.Albedo())
-			source, towards = data.Point(), reflected
+			starting, towards = data.Point(), reflected
 		} else {
 			t := .5 * (towards.Unit().Y() + 1.)
-			background := VectorUniform(1.).MulS(1. - t).Add(NewVector(.5, .7, 1).MulS(t))
+			background := VectorUniform(1.).MulS(1. - t).Add(NewVector(.5, .7, 1.).MulS(t))
 			return color.Mul(background)
 		}
 	}
-	return VectorUniform(0.)
+	return VectorO()
 }
 
 // Color determines the color at a given position

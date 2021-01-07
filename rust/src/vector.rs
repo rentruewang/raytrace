@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use num::{self, Num, Signed};
-use rand::Rng;
+use rand::{rngs::ThreadRng, Rng};
 
 pub trait Arithmetic:
     Clone + Copy + Add + AddAssign + Div + DivAssign + Mul + MulAssign + Sub + SubAssign
@@ -350,6 +350,10 @@ impl Vector<f64> {
         self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
     }
 
+    pub fn o() -> Self {
+        Self::uniform(0_f64)
+    }
+
     pub fn i() -> Self {
         Self {
             x: 1_f64,
@@ -374,12 +378,12 @@ impl Vector<f64> {
         }
     }
 
-    pub fn random(trng: &mut impl Rng) -> Self {
+    pub fn random(trng: &mut ThreadRng) -> Self {
         let (x, y, z) = trng.gen();
         Self { x, y, z }
     }
 
-    pub fn random_ball(radius: f64, trng: &mut impl Rng) -> Self {
+    pub fn random_ball(radius: f64, trng: &mut ThreadRng) -> Self {
         loop {
             let rand_vec = Self::random(trng);
             if rand_vec.l2() <= 1_f64 {
