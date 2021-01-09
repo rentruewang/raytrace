@@ -18,7 +18,7 @@ public final class App {
 
         var bi = new BufferedImage(Config.NX, Config.NY, BufferedImage.TYPE_INT_RGB);
 
-        var list = ProgressBar.wrap(IntStream.range(0, TOTAL), "Pixel processed").parallel().map(idx -> {
+        var list = ProgressBar.wrap(IntStream.range(0, TOTAL), "Percentage of pixels processed").parallel().map(idx -> {
             var i = idx / Config.NY;
             var j = idx % Config.NY;
 
