@@ -7,21 +7,12 @@ jobs:
       - name: 🔔 Check out
         uses: actions/checkout@v2
 
-      - name: 🏗️ 🏃 clang-format
-        uses: DoozyX/clang-format-lint-action@v0.11
+      - name: 🏗️ go runtime
+        uses: actions/setup-go@v2
         with:
-          extensions: h,c
-          clangFormatVersion: 11
-          inplace: True
-
-      - name: 🏗️ python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: ⬇️ black
-        run: pip install black
-      - name: 🏃 black
-        run: black .
+          go-version: ^1.13.1
+      - name: 🏃 go fmt
+        run: go fmt
 
       - name: ⬆️ Add and Commit
         uses: EndBug/add-and-commit@v7
