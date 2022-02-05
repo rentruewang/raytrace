@@ -1,0 +1,17 @@
+name: Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔔 Check out
+        uses: actions/checkout@v2
+
+      - name: 🏗️ gcc 10
+        run: |
+          sudo apt update
+          sudo apt install gcc-10
+        shell: bash
+
+      - name: 🏃 gcc build
+        run: gcc $(find . -iname '*.h' -o -iname '*.c') -Wall -Wextra -lm -fopenmp
