@@ -1,7 +1,7 @@
 name: Format
 on: [push]
 jobs:
-  format-all:
+  format:
     runs-on: ubuntu-latest
     steps:
       - name: 🔔 Check out

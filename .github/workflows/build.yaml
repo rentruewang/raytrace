@@ -1,7 +1,7 @@
 name: Build
 on: [push]
 jobs:
-  format-all:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: 🔔 Check out
