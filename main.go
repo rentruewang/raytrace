@@ -34,11 +34,21 @@ func main() {
 		R, G, B uint8
 	}
 
-	worker := func(i int, rgb chan<- RGB, genChan chan *rand.Rand, doneChan chan<- None) {
-		// implicit throttle
+	numCPU := runtime.NumCPU()
+	rgbChan := make(chan RGB, numCPU)
+	genChan := make(chan *rand.Rand, numCPU)
+	rgbArr := make([][]RGB, NX)
+	for i := 0; i < NX; i++ {
+		rgbArr[i] = make([]RGB, NY)
+	}
+
+	worker := func(i int, rgb chan<- RGB, doneChan chan<- None) {
+		// Using the number of generators as an implicit throttle
 		gen := <-genChan
+
 		x, y := i/NY, i%NY
 		r, g, b := scene.Color(x, y, NS, DEP, NX, NY, gen)
+
 		// send the generator back
 		genChan <- gen
 		rgb <- RGB{i, r, g, b}
@@ -54,15 +64,6 @@ func main() {
 		}
 	}()
 
-	numCPU := runtime.NumCPU()
-	rgbChan := make(chan RGB, numCPU)
-	genChan := make(chan *rand.Rand, numCPU)
-
-	rgbArr := make([][]RGB, NX)
-	for i := 0; i < NX; i++ {
-		rgbArr[i] = make([]RGB, NY)
-	}
-
 	for i := 0; i < numCPU; i++ {
 		source := rand.NewSource(time.Now().Unix())
 		gen := rand.New(source)
@@ -70,7 +71,7 @@ func main() {
 	}
 
 	for i := 0; i < TOTAL; i++ {
-		go worker(i, rgbChan, genChan, done)
+		go worker(i, rgbChan, done)
 	}
 
 	for i := 0; i < NX*NY; i++ {
@@ -90,10 +91,13 @@ func main() {
 	fname := "image.png"
 
 	fullPath := path.Join(folder, fname)
-	os.Mkdir(folder, 0744)
+	var err error
+	err = os.Mkdir(folder, 0744)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	var file *os.File
-	var err error
 	if file, err = os.Create(fullPath); err != nil {
 		log.Fatalln(err)
 	}
