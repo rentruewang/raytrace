@@ -2,62 +2,23 @@ package com.app.source;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class Vector {
-    private double x;
-    private double y;
-    private double z;
-
-    public Vector() {}
-
-    public Vector(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public double x() {
-        return this.x;
-    }
-
-    public double y() {
-        return this.y;
-    }
-
-    public double z() {
-        return this.z;
+public final record Vector(double x, double y, double z) {
+    public Vector() {
+        this(0, 0, 0);
     }
 
     public double get(int i) {
         switch (i) {
             case 0:
-                return x();
+                return x;
             case 1:
-                return y();
+                return y;
             case 2:
-                return z();
+                return z;
             default:
+                throw new IllegalArgumentException(
+                        String.format("Argument should be one of [0, 1, 2]. Received: %d", i));
         }
-        assert false;
-        return 0.;
-    }
-
-    public void x(double v) {
-        this.x = v;
-    }
-
-    public void y(double v) {
-        this.y = v;
-    }
-
-    public void z(double v) {
-        this.z = v;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        var other = (Vector) obj;
-
-        return this.x == other.x && this.y == other.y && this.z == other.z;
     }
 
     public Vector add(Vector other) {
@@ -90,54 +51,6 @@ public final class Vector {
 
     public Vector div(double v) {
         return new Vector(this.x / v, this.y / v, this.z / v);
-    }
-
-    public void iadd(Vector other) {
-        this.x += other.x;
-        this.y += other.y;
-        this.z += other.z;
-    }
-
-    public void iadd(double v) {
-        this.x += v;
-        this.y += v;
-        this.z += v;
-    }
-
-    public void isub(Vector other) {
-        this.x -= other.x;
-        this.y -= other.y;
-        this.z -= other.z;
-    }
-
-    public void isub(double v) {
-        this.x -= v;
-        this.y -= v;
-        this.z -= v;
-    }
-
-    public void imul(Vector other) {
-        this.x *= other.x;
-        this.y *= other.y;
-        this.z *= other.z;
-    }
-
-    public void imul(double v) {
-        this.x *= v;
-        this.y *= v;
-        this.z *= v;
-    }
-
-    public void idiv(Vector other) {
-        this.x /= other.x;
-        this.y /= other.y;
-        this.z /= other.z;
-    }
-
-    public void idiv(double v) {
-        this.x /= v;
-        this.y /= v;
-        this.z /= v;
     }
 
     public double dot(Vector other) {
@@ -183,19 +96,19 @@ public final class Vector {
     }
 
     public static Vector o() {
-        return Vector.uniform(0.);
+        return Vector.uniform(0);
     }
 
     public static Vector i() {
-        return new Vector(1., 0., 0.);
+        return new Vector(1, 0, 0);
     }
 
     public static Vector j() {
-        return new Vector(0., 1., 0.);
+        return new Vector(0, 1, 0);
     }
 
     public static Vector k() {
-        return new Vector(0., 0., 1.);
+        return new Vector(0, 0, 1);
     }
 
     public static Vector random() {
@@ -206,9 +119,9 @@ public final class Vector {
     public static Vector randomBall(double radius) {
         for (;;) {
             var random = Vector.random();
-            assert 0. <= random.x() && random.x() < 1;
-            assert 0. <= random.y() && random.y() < 1;
-            assert 0. <= random.z() && random.z() < 1;
+            assert 0 <= random.x() && random.x() < 1;
+            assert 0 <= random.y() && random.y() < 1;
+            assert 0 <= random.z() && random.z() < 1;
             if (random.l2() <= 1.) {
                 return random.mul(radius);
             }

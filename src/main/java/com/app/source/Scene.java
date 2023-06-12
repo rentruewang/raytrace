@@ -84,7 +84,7 @@ public final class Scene implements Hittable {
     }
 
     public Vector color_trace(Vector starting, Vector towards, int depth) {
-        var color = Vector.uniform(1.);
+        var color = Vector.uniform(1);
         for (int d = 0; d < depth; ++d) {
             var data = hit(starting, towards);
 
@@ -92,13 +92,13 @@ public final class Scene implements Hittable {
                 var matter = data.matter();
                 var reflected = matter.scatter(towards, data.normal());
 
-                color.imul(matter.albedo());
+                color = color.mul(matter.albedo());
 
                 starting = data.point();
                 towards = reflected;
             } else {
-                double t = .5 * (towards.unit().y() + 1.);
-                var back = Vector.uniform(1.).mul(1. - t).add(new Vector(.5, .7, 1.).mul(t));
+                double t = (towards.unit().y() + 1.) / 2;
+                var back = Vector.uniform(1).mul(1 - t).add(new Vector(.5, .7, 1).mul(t));
                 return color.mul(back);
             }
         }
@@ -140,7 +140,7 @@ public final class Scene implements Hittable {
             double x = random.nextDouble();
             double y = random.nextDouble();
 
-            if (x * x + y * y <= 1.) {
+            if (x * x + y * y <= 1) {
                 return new double[] {x * radius, y * radius};
             }
         }

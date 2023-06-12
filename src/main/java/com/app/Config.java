@@ -40,14 +40,14 @@ public final record Config(int width, int height, int samples, int depth, double
             case 2:
                 return new Glass(albedo, blur, refrac);
             default:
-                throw new RuntimeException("Unreachable code");
+                throw new RuntimeException("unreachable");
         }
     }
 
     public Scene scenes() {
         var random = ThreadLocalRandom.current();
 
-        var eye = new Vector(13., 2., 3.);
+        var eye = new Vector(13, 2, 3);
         var lookat = Vector.o();
         var viewup = Vector.j();
 
@@ -64,8 +64,8 @@ public final record Config(int width, int height, int samples, int depth, double
         viewup = viewup.sub(proj).unit();
         var horizon = vision.cross(viewup).unit();
 
-        viewup.imul(height);
-        horizon.imul(width);
+        viewup = viewup.mul(height);
+        horizon = horizon.mul(width);
 
         var list = new HittableList();
 
@@ -81,11 +81,11 @@ public final record Config(int width, int height, int samples, int depth, double
             }
         }
 
-        list.add(new Sphere(new Vector(0., -1000., 0.), 1000., new Matte(Vector.uniform(.9))));
+        list.add(new Sphere(new Vector(0, -1000, 0), 1000, new Matte(Vector.uniform(.9))));
 
-        list.add(new Sphere(Vector.j(), 1., new Glass(Vector.uniform(1.), 0., 1.5)));
-        list.add(new Sphere(new Vector(-4., 1., 0.), 1., new Matte(new Vector(.4, .2, .1))));
-        list.add(new Sphere(new Vector(4., 1., 0.), 1., new Metal(new Vector(.7, .6, .5), 0.)));
+        list.add(new Sphere(Vector.j(), 1, new Glass(Vector.uniform(1), 0, 1.5)));
+        list.add(new Sphere(new Vector(-4, 1, 0), 1, new Matte(new Vector(.4, .2, .1))));
+        list.add(new Sphere(new Vector(4, 1, 0), 1, new Metal(new Vector(.7, .6, .5), 0)));
 
         var scene = new Scene(
                 eye, lookat.sub(viewup).sub(horizon), horizon.mul(2.), viewup.mul(2.), aperture);

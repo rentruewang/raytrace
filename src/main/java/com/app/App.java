@@ -22,7 +22,7 @@ public final class App {
 
         var list = ProgressBar.wrap(IntStream.range(0, pixels), "Percentage of pixels processed")
                            .parallel()
-                           .map(idx -> {
+                           .map((Integer idx) -> {
                                var i = idx / config.width();
                                var j = idx % config.height();
 
