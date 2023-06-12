@@ -49,5 +49,4 @@ public final class List implements Hittable {
                 return bnd;
         }
     }
-
 }

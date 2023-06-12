@@ -7,8 +7,7 @@ public final class Vector {
     private double y;
     private double z;
 
-    public Vector() {
-    }
+    public Vector() {}
 
     public Vector(double x, double y, double z) {
         this.x = x;

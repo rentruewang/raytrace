@@ -1,14 +1,15 @@
 package com.app;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import javafx.util.Pair;
-
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javafx.util.Pair;
+
+import javax.imageio.ImageIO;
+
 import me.tongfei.progressbar.ProgressBar;
 
 public final class App {
@@ -18,13 +19,17 @@ public final class App {
 
         var bi = new BufferedImage(Config.NX, Config.NY, BufferedImage.TYPE_INT_RGB);
 
-        var list = ProgressBar.wrap(IntStream.range(0, TOTAL), "Percentage of pixels processed").parallel().map(idx -> {
-            var i = idx / Config.NY;
-            var j = idx % Config.NY;
+        var list = ProgressBar.wrap(IntStream.range(0, TOTAL), "Percentage of pixels processed")
+                           .parallel()
+                           .map(idx -> {
+                               var i = idx / Config.NY;
+                               var j = idx % Config.NY;
 
-            var color = scene.color(i, j, Config.NS, Config.DEP, Config.NX, Config.NY);
-            return new WithIndex(new Pair<>(i, j), color);
-        }).collect(Collectors.toList());
+                               var color = scene.color(
+                                       i, j, Config.NS, Config.DEP, Config.NX, Config.NY);
+                               return new WithIndex(new Pair<>(i, j), color);
+                           })
+                           .collect(Collectors.toList());
 
         for (var data : list) {
             var pair = data.pair;

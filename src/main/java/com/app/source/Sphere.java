@@ -68,6 +68,7 @@ public final class Sphere implements Hittable {
         Vector min = center.sub(radius);
         Vector max = center.add(radius);
 
-        return new Box(new Pair(min.x(), max.x()), new Pair(min.y(), max.y()), new Pair(min.z(), max.z()));
+        return new Box(
+                new Pair(min.x(), max.x()), new Pair(min.y(), max.y()), new Pair(min.z(), max.z()));
     }
 }

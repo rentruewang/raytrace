@@ -21,7 +21,8 @@ public final class Scene implements Hittable {
         this.aperture = aperture;
     }
 
-    public Scene(Vector source, Vector corner, Vector horizon, Vector vertical, Hittable list, double aperture) {
+    public Scene(Vector source, Vector corner, Vector horizon, Vector vertical, Hittable list,
+            double aperture) {
         this.source = source;
         this.corner = corner;
         this.horizon = horizon;
@@ -116,18 +117,21 @@ public final class Scene implements Hittable {
         Vector v = vertical.unit().mul(aj);
         Vector start = source.add(h).add(v);
 
-        var color = IntStream.range(0, ns).sequential().mapToObj(_i -> {
-            double i = ((double) x + random.nextDouble()) / dx;
-            double j = ((double) y + random.nextDouble()) / dy;
+        var color = IntStream.range(0, ns)
+                            .sequential()
+                            .mapToObj(_i -> {
+                                double i = ((double) x + random.nextDouble()) / dx;
+                                double j = ((double) y + random.nextDouble()) / dy;
 
-            Vector end = corner.add(horizon.mul(i).add(vertical.mul(j)));
-            Vector towards = end.sub(start);
+                                Vector end = corner.add(horizon.mul(i).add(vertical.mul(j)));
+                                Vector towards = end.sub(start);
 
-            return color_trace(start, towards, depth);
-        }).reduce(Vector.o(), Vector::add);
+                                return color_trace(start, towards, depth);
+                            })
+                            .reduce(Vector.o(), Vector::add);
 
         var pixel = color.div(ns).mul(255.999);
-        return new int[] { (int) pixel.x(), (int) pixel.y(), (int) pixel.z() };
+        return new int[] {(int) pixel.x(), (int) pixel.y(), (int) pixel.z()};
     }
 
     public static double[] randomDisk(double radius) {
@@ -137,14 +141,13 @@ public final class Scene implements Hittable {
             double y = random.nextDouble();
 
             if (x * x + y * y <= 1.) {
-                return new double[] { x * radius, y * radius };
+                return new double[] {x * radius, y * radius};
             }
         }
     }
 
     @Override
     public HitData hit(Vector source, Vector towards) {
-
         return list.hit(source, towards);
     }
 

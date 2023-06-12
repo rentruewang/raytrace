@@ -53,7 +53,6 @@ public final class Glass implements Material {
 
         var casted = normal.mul(input.dot(normal) * 2.);
         return randBlur.add(input).sub(casted);
-
     }
 
     @Override
