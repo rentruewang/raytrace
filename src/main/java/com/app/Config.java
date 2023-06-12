@@ -1,31 +1,36 @@
 package com.app;
 
-import com.app.source.*;
-;
+import com.app.source.Glass;
+import com.app.source.Hittable;
+import com.app.source.HittableList;
+import com.app.source.HittableTree;
+import com.app.source.Material;
+import com.app.source.Matte;
+import com.app.source.Metal;
+import com.app.source.Scene;
+import com.app.source.Sphere;
+import com.app.source.Vector;
 
+import java.lang.Math;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class Config {
-    public static final int PROGRESS = 1000;
-    public static final int NX = 1200;
-    public static final int NY = 675;
-    public static final int NS = 100;
-    public static final int DEP = 10;
-    public static final double DEG = 30.;
-    public static final double RATIO = (double) NX / (double) NY;
-    public static final double APERTURE = 0.;
-    public static final boolean TREE = true;
+public final record Config(int width, int height, int samples, int depth, double degree,
+        double aperture, boolean treeBased) {
+    public static Config fromDefault() {
+        return new Config(DefaultConfig.NX, DefaultConfig.NY, DefaultConfig.NS, DefaultConfig.DEP,
+                DefaultConfig.DEG, DefaultConfig.APERTURE, DefaultConfig.TREE);
+    }
 
-    static Material randomMaterial() {
+    public Material randomMaterial() {
         var random = ThreadLocalRandom.current();
 
-        var mat = (int) (random.nextDouble() * 3.);
-        assert 0 <= mat && mat < 3.;
+        var mat = (int) random.nextDouble() * 3;
+        assert 0 <= mat && mat < 3;
         var blur = random.nextDouble() / 2.;
-        assert 0 <= mat && mat < 1. / 2.;
-        var refractive = random.nextDouble() + 1;
-        assert 1. <= mat && mat < 2.;
-        var albedo = Vector.random().add(1.).div(2.);
+        assert 0 <= blur && blur < 1. / 2;
+        var refrac = random.nextDouble() + 1;
+        assert 1 <= refrac && refrac < 2;
+        var albedo = Vector.random().add(1).div(2);
 
         switch (mat) {
             case 0:
@@ -33,14 +38,13 @@ public final class Config {
             case 1:
                 return new Metal(albedo, blur);
             case 2:
-                return new Glass(albedo, blur, refractive);
+                return new Glass(albedo, blur, refrac);
             default:
+                throw new RuntimeException("Unreachable code");
         }
-        assert false;
-        return null;
     }
 
-    public static Scene scenes() {
+    public Scene scenes() {
         var random = ThreadLocalRandom.current();
 
         var eye = new Vector(13., 2., 3.);
@@ -49,10 +53,11 @@ public final class Config {
 
         var vision = lookat.sub(eye);
 
-        var rad = Math.PI * DEG / 360.;
+        var rad = Math.PI * degree / 360.;
 
         var height = Math.tan(rad) * vision.length();
-        var width = height * RATIO;
+        var ratio = (double) width / height;
+        var width = height * ratio;
 
         var unit = vision.unit();
         var proj = unit.mul(viewup.dot(unit));
@@ -62,7 +67,7 @@ public final class Config {
         viewup.imul(height);
         horizon.imul(width);
 
-        var list = new List();
+        var list = new HittableList();
 
         for (int i = -11; i < 11; ++i) {
             for (int j = -11; j < 11; ++j) {
@@ -83,9 +88,9 @@ public final class Config {
         list.add(new Sphere(new Vector(4., 1., 0.), 1., new Metal(new Vector(.7, .6, .5), 0.)));
 
         var scene = new Scene(
-                eye, lookat.sub(viewup).sub(horizon), horizon.mul(2.), viewup.mul(2.), APERTURE);
+                eye, lookat.sub(viewup).sub(horizon), horizon.mul(2.), viewup.mul(2.), aperture);
 
-        var h = TREE ? new Tree(list) : list;
+        Hittable h = treeBased ? new HittableTree(list) : list;
 
         scene.save(h);
 

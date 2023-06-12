@@ -2,11 +2,11 @@ package com.app.source;
 
 import java.util.Collections;
 
-public final class Tree implements Hittable {
+public final class HittableTree implements Hittable {
     Hittable root;
 
-    public Tree(com.app.source.List list) {
-        this.root = Tree.recursivePartition(list.get());
+    public HittableTree(com.app.source.HittableList list) {
+        this.root = HittableTree.recursivePartition(list.get());
     }
 
     private enum Axis { X, Y, Z }

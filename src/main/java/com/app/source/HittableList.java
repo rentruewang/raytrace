@@ -2,14 +2,14 @@ package com.app.source;
 
 import java.util.ArrayList;
 
-public final class List implements Hittable {
+public final class HittableList implements Hittable {
     private ArrayList<Hittable> objects;
 
-    public List() {
+    public HittableList() {
         this.objects = new ArrayList<Hittable>();
     }
 
-    public List(ArrayList<Hittable> objects) {
+    public HittableList(ArrayList<Hittable> objects) {
         this.objects = objects;
     }
 

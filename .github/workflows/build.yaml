@@ -10,8 +10,8 @@ jobs:
       - name: 🏗️ Java
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
 
       - name: 🏃 maven build
-        run: mvn clean compile package
+        run: mvn clean compile assembly:single

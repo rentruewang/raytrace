@@ -14,29 +14,38 @@ import me.tongfei.progressbar.ProgressBar;
 
 public final class App {
     public static void main(String[] args) {
-        var scene = Config.scenes();
-        final int TOTAL = Config.NX * Config.NY;
+        final var config = Config.fromDefault();
+        final var scene = config.scenes();
+        final int pixels = config.width() * config.height();
 
-        var bi = new BufferedImage(Config.NX, Config.NY, BufferedImage.TYPE_INT_RGB);
+        var bi = new BufferedImage(config.width(), config.height(), BufferedImage.TYPE_INT_RGB);
 
-        var list = ProgressBar.wrap(IntStream.range(0, TOTAL), "Percentage of pixels processed")
-                           .parallel()
-                           .map(idx -> {
-                               var i = idx / Config.NY;
-                               var j = idx % Config.NY;
+        var list = ProgressBar.wrap(IntStream.range(0, pixels), "Percentage of pixels processed")
+                .parallel()
+                .map(idx -> {
+                    var i = idx / config.width();
+                    var j = idx % config.height();
 
-                               var color = scene.color(
-                                       i, j, Config.NS, Config.DEP, Config.NX, Config.NY);
-                               return new WithIndex(new Pair<>(i, j), color);
-                           })
-                           .collect(Collectors.toList());
+                    var color = scene.color(i, j, config.samples(), config.depth(),
+                            config.width(), config.height());
+                    return new WithIndex(new Pair<>(i, j), color);
+                })
+                .collect(Collectors.toList());
 
         for (var data : list) {
-            var pair = data.pair;
-            var l = (int[]) data.list;
+            var x = data.pair.getKey();
+            var y = data.pair.getValue();
 
-            var color = new Color(l[0], l[1], l[2]);
-            bi.setRGB(pair.getKey(), Config.NY - pair.getValue() - 1, color.getRGB());
+            assert x >= 0 && x < config.width();
+            assert y >= 0 && y < config.height();
+
+            var l = data.list;
+
+            var rgb = new Color(l[0], l[1], l[2]).getRGB();
+
+            assert bi.getWidth() == config.width();
+            assert bi.getHeight() == config.height();
+            bi.setRGB(x, config.height() - y - 1, rgb);
         }
 
         String folder = "images";
@@ -51,9 +60,8 @@ public final class App {
         try {
             ImageIO.write(bi, "PNG", file);
         } catch (Exception e) {
+            System.out.println("Don't want to handle this.");
         }
-
-        System.out.println("Finished");
     }
 }
 
