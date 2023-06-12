@@ -21,16 +21,16 @@ public final class App {
         var bi = new BufferedImage(config.width(), config.height(), BufferedImage.TYPE_INT_RGB);
 
         var list = ProgressBar.wrap(IntStream.range(0, pixels), "Percentage of pixels processed")
-                .parallel()
-                .map(idx -> {
-                    var i = idx / config.width();
-                    var j = idx % config.height();
+                           .parallel()
+                           .map(idx -> {
+                               var i = idx / config.width();
+                               var j = idx % config.height();
 
-                    var color = scene.color(i, j, config.samples(), config.depth(),
-                            config.width(), config.height());
-                    return new WithIndex(new Pair<>(i, j), color);
-                })
-                .collect(Collectors.toList());
+                               var color = scene.color(i, j, config.samples(), config.depth(),
+                                       config.width(), config.height());
+                               return new WithIndex(new Pair<>(i, j), color);
+                           })
+                           .collect(Collectors.toList());
 
         for (var data : list) {
             var x = data.pair.getKey();
