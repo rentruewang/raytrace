@@ -1,0 +1,24 @@
+name: Format
+on: [push]
+jobs:
+  format-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔔 Check out
+        uses: actions/checkout@v3
+
+      - name: 🏗️ 🏃 clang-format
+        uses: DoozyX/clang-format-lint-action@v0.14
+        with:
+          extensions: java
+          clangFormatVersion: 14
+          inplace: True
+
+      - name: ⬆️ Add and Commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: "github-actions[bot]"
+          author_email: "github-actions[bot]@users.noreply.github.com"
+          message: "🤖 RenTrueWang thinks you forgot to format your code!"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
