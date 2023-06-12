@@ -1,30 +1,27 @@
 package com.app.source;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public final record HittableTree(Hittable root) implements Hittable {
-
     public HittableTree(HittableList list) {
         this(HittableTree.recursivePartition(list.objects()));
     }
 
-    private enum Axis {
-        X, Y, Z
-    }
+    private enum Axis { X, Y, Z }
 
     private static Axis maxVar(java.util.List<Hittable> list) {
         Vector avg = list.stream()
-                .map(Hittable::bounds)
-                .map(Box::center)
-                .reduce(new Vector(), Vector::add);
+                             .map(Hittable::bounds)
+                             .map(Box::center)
+                             .reduce(new Vector(), Vector::add);
 
         Vector variance = list.stream()
-                .map(Hittable::bounds)
-                .map(Box::center)
-                .map(v -> v.sub(avg))
-                .reduce(new Vector(), Vector::add);
+                                  .map(Hittable::bounds)
+                                  .map(Box::center)
+                                  .map(v -> v.sub(avg))
+                                  .reduce(new Vector(), Vector::add);
 
         if (variance.x() > variance.y() && variance.x() > variance.z()) {
             return Axis.X;
@@ -49,18 +46,21 @@ public final record HittableTree(Hittable root) implements Hittable {
                 switch (maxVar(objects)) {
                     case X:
                         Collections.sort(objects,
-                                (a, b) -> Double.compare(
-                                        a.bounds().center().x(), b.bounds().center().x()));
+                                (a, b)
+                                        -> Double.compare(
+                                                a.bounds().center().x(), b.bounds().center().x()));
                         break;
                     case Y:
                         Collections.sort(objects,
-                                (a, b) -> Double.compare(
-                                        a.bounds().center().y(), b.bounds().center().y()));
+                                (a, b)
+                                        -> Double.compare(
+                                                a.bounds().center().y(), b.bounds().center().y()));
                         break;
                     case Z:
                         Collections.sort(objects,
-                                (a, b) -> Double.compare(
-                                        a.bounds().center().z(), b.bounds().center().z()));
+                                (a, b)
+                                        -> Double.compare(
+                                                a.bounds().center().z(), b.bounds().center().z()));
                         break;
                 }
 
@@ -85,7 +85,6 @@ public final record HittableTree(Hittable root) implements Hittable {
 }
 
 record TreeNode(Box bounds, Hittable left, Hittable right) implements Hittable {
-
     TreeNode(Hittable l, Hittable r) {
         this(Box.wraps(l.bounds(), r.bounds()), l, r);
     }
@@ -102,7 +101,7 @@ record TreeNode(Box bounds, Hittable left, Hittable right) implements Hittable {
         boolean leftIsHit = leftHit.isHit();
         boolean rightIsHit = rightHit.isHit();
 
-        switch (Arrays.toString(new boolean[] { leftIsHit, rightIsHit })) {
+        switch (Arrays.toString(new boolean[] {leftIsHit, rightIsHit})) {
             case "[true, true]":
                 return leftHit.t() < rightHit.t() ? leftHit : rightHit;
             case "[true, false]":
@@ -114,6 +113,5 @@ record TreeNode(Box bounds, Hittable left, Hittable right) implements Hittable {
             default:
                 throw new RuntimeException("unreachable");
         }
-
     }
 }
