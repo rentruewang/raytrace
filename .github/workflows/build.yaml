@@ -7,11 +7,15 @@ jobs:
       - name: 🔔 Check out
         uses: actions/checkout@v3
 
-      - name: 🏗️ Java
-        uses: actions/setup-java@v3
+      - name: 🏗️ Python
+        uses: actions/setup-python@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          python-version: "3.10"
 
-      - name: 🏃 maven build
-        run: mvn clean compile assembly:single
+      - name: 🏗️ Meson
+        run: pip install meson ninja        
+
+      - name: 🏃 Meson
+        run: |
+          meson setup builddir
+          meson compile -C builddir

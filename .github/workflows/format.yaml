@@ -7,10 +7,11 @@ jobs:
       - name: 🔔 Check out
         uses: actions/checkout@v3
 
-      - name: 🏗️ 🏃 clang-format
+      - name: 🏃 clang-format
         uses: DoozyX/clang-format-lint-action@v0.14
         with:
-          extensions: java
+          source: ./cxx
+          extensions: h,cxx
           clangFormatVersion: 14
           inplace: True
 
