@@ -40,4 +40,4 @@ class Vector {
 template <typename T, size_t S>
 std::ostream& operator<<(std::ostream& out, const Vector<T, S>& self);
 
-#include <vectors.txx>
+#include "vectors.txx"

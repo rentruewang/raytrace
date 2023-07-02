@@ -37,5 +37,4 @@
 # For folks who uses Mac
 .DS_Store
 
-# Meson
-/builddir/
+/build/

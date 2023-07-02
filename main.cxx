@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <vectors.h>
 #include <iostream>
+#include "vectors.h"
 
 #define PROJECT_NAME "raytrace"
 
