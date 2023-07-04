@@ -1,10 +1,10 @@
 #include <fmt/ranges.h>
 
 template <typename T, size_t S>
-Vector<T, S>::Vector(const std::array& vec) : vec_(vec) {}
+Vector<T, S>::Vector(const std::array<T, S>& vec) : vec_(vec) {}
 
 template <typename T, size_t S>
-Vector<T, S>::Vector(const Vector& other) : vec_(other.vec_) {}
+Vector<T, S>::Vector(const Vector<T, S>& other) : vec_(other.vec_) {}
 
 template <typename T, size_t S>
 Vector<T, S> Vector<T, S>::random(void) {

@@ -8,18 +8,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 🏃 clang-format
-        uses: DoozyX/clang-format-lint-action@v0.14
+        uses: DoozyX/clang-format-lint-action@v0.16
         with:
           source: ./cxx
           extensions: h,cxx
-          clangFormatVersion: 14
-          inplace: True
-
-      - name: ⬆️ Add and Commit
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: "github-actions[bot]"
-          author_email: "github-actions[bot]@users.noreply.github.com"
-          message: "🤖 RenTrueWang thinks you forgot to format your code!"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          clangFormatVersion: 16
