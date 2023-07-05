@@ -8,8 +8,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 🏃 clang-format
-        uses: DoozyX/clang-format-lint-action@v0.16
+        uses: DoozyX/clang-format-lint-action@v0.14
         with:
-          source: ./cxx
           extensions: h,cxx
-          clangFormatVersion: 16
+          clangFormatVersion: 14
